@@ -1,6 +1,7 @@
 import { Client } from "pg";
 import { APP_SCHEMA, CORE_URL } from "./db-url";
 import { getCorePool, syncTenantPools } from "./db-pool";
+import { runConfigSqlOnTenantChange } from "./config-sql";
 
 const CHANNEL = "tenant_change";
 const TRIGGER_NAME = "tenants_notify_trigger";
@@ -109,8 +110,11 @@ async function startTenantChangeListener(): Promise<void> {
   client.on("notification", (msg) => {
     if (msg.channel !== CHANNEL) return;
     console.log("[db-event] tenants table changed:", safeNotifySummary(msg.payload));
-    void syncTenantPools().catch((err) => {
-      console.error("[db-event] syncTenantPools failed:", err);
+    void (async () => {
+      await syncTenantPools();
+      await runConfigSqlOnTenantChange();
+    })().catch((err) => {
+      console.error("[db-event] tenant change sync/config-sql failed:", err);
     });
   });
 

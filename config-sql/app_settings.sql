@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 
   CONSTRAINT app_settings_pkey PRIMARY KEY (id),
   CONSTRAINT app_settings_type_code_unique UNIQUE (type, code),
-  CONSTRAINT app_settings_id_check CHECK (id = type || '-' || code)
+  CONSTRAINT app_settings_id_check CHECK (id = type || '_' || code)
 );
 
 CREATE INDEX IF NOT EXISTS app_settings_type_idx ON app_settings (type);
@@ -21,121 +21,121 @@ CREATE INDEX IF NOT EXISTS app_settings_active_idx ON app_settings (active);
 CREATE INDEX IF NOT EXISTS app_settings_is_public_idx ON app_settings (is_public);
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integration-smtp', 'integration', 'smtp', 'SMTP Settings', false,
+VALUES ('integrations_smtp', 'integration', 'smtp', 'SMTP Settings', false,
 '{"host":"","port":587,"username":"","password":"","encryption":"tls","from_email":"","from_name":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integration-s3', 'integration', 's3', 'S3 Bucket Settings', false,
+VALUES ('integrations_s3', 'integration', 's3', 'S3 Bucket Settings', false,
 '{"bucket":"","region":"","access_key":"","secret_key":"","base_url":"","folder":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integration-google-map', 'integration', 'google-map', 'Google Map Settings', false,
+VALUES ('integrations_google_map', 'integration', 'google_map', 'Google Map Settings', false,
 '{"enabled":false,"api_key":"","default_latitude":"","default_longitude":"","zoom":12}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('branding-company', 'branding', 'company', 'Company Branding', true,
+VALUES ('branding_company', 'branding', 'company', 'Company Branding', true,
 '{"app_name":"","company_name":"","logo_url":"","favicon_url":"","footer_logo_url":"","primary_color":"","secondary_color":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('contact-details', 'contact', 'details', 'Contact Details', true,
+VALUES ('contact_details', 'contact', 'details', 'Contact Details', true,
 '{"email":"","support_email":"","phone":"","whatsapp":"","address":"","city":"","state":"","country":"","pincode":"","website":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('social-links', 'social', 'links', 'Social Network Links', true,
+VALUES ('social_links', 'social', 'links', 'Social Network Links', true,
 '{"facebook":"","instagram":"","linkedin":"","twitter":"","youtube":"","telegram":"","whatsapp":"","pinterest":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('legal-copyright', 'legal', 'copyright', 'Copyright Settings', true,
+VALUES ('legal_copyright', 'legal', 'copyright', 'Copyright Settings', true,
 '{"copyright_text":"Copyright © 2026. All rights reserved.","company_name":"","terms_url":"","privacy_url":"","refund_url":"","shipping_url":"","cookie_policy_url":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('auth-google', 'auth', 'google', 'Google Login Settings', false,
+VALUES ('auth_google', 'auth', 'google', 'Google Login Settings', false,
 '{"enabled":false,"client_id":"","client_secret":"","redirect_url":"","scopes":["email","profile"]}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('auth-apple', 'auth', 'apple', 'Apple Login Settings', false,
+VALUES ('auth_apple', 'auth', 'apple', 'Apple Login Settings', false,
 '{"enabled":false,"client_id":"","team_id":"","key_id":"","private_key":"","redirect_url":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('auth-facebook', 'auth', 'facebook', 'Facebook Login Settings', false,
+VALUES ('auth_facebook', 'auth', 'facebook', 'Facebook Login Settings', false,
 '{"enabled":false,"app_id":"","app_secret":"","redirect_url":"","scopes":["email","public_profile"]}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('auth-linkedin', 'auth', 'linkedin', 'LinkedIn Login Settings', false,
+VALUES ('auth_linkedin', 'auth', 'linkedin', 'LinkedIn Login Settings', false,
 '{"enabled":false,"client_id":"","client_secret":"","redirect_url":"","scopes":["openid","profile","email"]}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('payment-stripe', 'payment', 'stripe', 'Stripe Payment Settings', false,
+VALUES ('payment_stripe', 'payment', 'stripe', 'Stripe Payment Settings', false,
 '{"enabled":false,"mode":"test","publishable_key":"","secret_key":"","webhook_secret":"","currency":"USD"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('payment-razorpay', 'payment', 'razorpay', 'Razorpay Payment Settings', false,
+VALUES ('payment_razorpay', 'payment', 'razorpay', 'Razorpay Payment Settings', false,
 '{"enabled":false,"mode":"test","key_id":"","key_secret":"","webhook_secret":"","currency":"INR"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('payment-paypal', 'payment', 'paypal', 'PayPal Payment Settings', false,
+VALUES ('payment_paypal', 'payment', 'paypal', 'PayPal Payment Settings', false,
 '{"enabled":false,"mode":"sandbox","client_id":"","client_secret":"","currency":"USD"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('payment-cashfree', 'payment', 'cashfree', 'Cashfree Payment Settings', false,
+VALUES ('payment_cashfree', 'payment', 'cashfree', 'Cashfree Payment Settings', false,
 '{"enabled":false,"mode":"sandbox","app_id":"","secret_key":"","webhook_secret":"","currency":"INR"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('notification-sms', 'notification', 'sms', 'SMS Settings', false,
+VALUES ('notification_sms', 'notification', 'sms', 'SMS Settings', false,
 '{"enabled":false,"provider":"","api_key":"","sender_id":"","template_id":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('notification-whatsapp', 'notification', 'whatsapp', 'WhatsApp Settings', false,
+VALUES ('notification_whatsapp', 'notification', 'whatsapp', 'WhatsApp Settings', false,
 '{"enabled":false,"provider":"","phone_number_id":"","access_token":"","business_account_id":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('notification-push', 'notification', 'push', 'Push Notification Settings', false,
+VALUES ('notification_push', 'notification', 'push', 'Push Notification Settings', false,
 '{"enabled":false,"firebase_server_key":"","firebase_project_id":"","vapid_key":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('security-recaptcha', 'security', 'recaptcha', 'Google reCAPTCHA Settings', false,
+VALUES ('security_recaptcha', 'security', 'recaptcha', 'Google reCAPTCHA Settings', false,
 '{"enabled":false,"site_key":"","secret_key":"","version":"v2"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('analytics-google', 'analytics', 'google', 'Google Analytics Settings', false,
+VALUES ('analytics_google', 'analytics', 'google', 'Google Analytics Settings', false,
 '{"enabled":false,"measurement_id":"","tag_manager_id":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('analytics-facebook-pixel', 'analytics', 'facebook-pixel', 'Facebook Pixel Settings', false,
+VALUES ('analytics_facebook_pixel', 'analytics', 'facebook_pixel', 'Facebook Pixel Settings', false,
 '{"enabled":false,"pixel_id":"","access_token":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('seo-default', 'seo', 'default', 'Default SEO Settings', true,
+VALUES ('seo_default', 'seo', 'default', 'Default SEO Settings', true,
 '{"meta_title":"","meta_description":"","meta_keywords":"","og_image":"","canonical_url":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('system-maintenance', 'system', 'maintenance', 'Maintenance Mode', false,
+VALUES ('system_maintenance', 'system', 'maintenance', 'Maintenance Mode', false,
 '{"enabled":false,"message":"We are currently under maintenance.","allowed_ips":[]}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('system-app', 'system', 'app', 'Application Settings', true,
+VALUES ('system_app', 'system', 'app', 'Application Settings', true,
 '{"timezone":"Asia/Kolkata","date_format":"YYYY-MM-DD","time_format":"HH:mm","currency":"INR","language":"en"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;

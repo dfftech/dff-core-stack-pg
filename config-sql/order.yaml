@@ -1,0 +1,13 @@
+- app_constants
+- app_settings
+- lang
+- otp_verifications
+- profiles
+- profile_hashes
+- menu_roles
+- menu_groups
+- menu_links
+- menu_access
+- query_loads
+- query_reports
+- query_lists

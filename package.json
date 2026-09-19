@@ -1,0 +1,23 @@
+{
+  "name": "encore-ts-starter",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Encore Typescript Starter",
+  "license": "MPL-2.0",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^20.5.7",
+    "@types/pg": "^8.23.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "dff-util": "^1.4.3",
+    "drizzle-orm": "^0.45.2",
+    "encore.dev": "^1.58.4",
+    "kafkajs": "^2.2.4",
+    "pg": "^8.23.0"
+  },
+  "scripts": {
+    "start": "encore run"
+  }
+}

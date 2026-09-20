@@ -4,6 +4,7 @@ import {
   kafkaPublish
 } from "../utils/kafka-util";
 import { env } from "../utils/app-util";
+import { maskLogData } from "../utils/log-mask";
 
 const KAFKA_LOG_TOPIC = env("KAFKA_LOG_TOPIC") || "app-logs";
 const KAFKA_LOG_SEND = env("KAFKA_LOG_SEND") || "false";
@@ -66,9 +67,10 @@ export function createKafkaLogger(
 
   function createMethod(level: "info" | "error" | "warn" | "debug") {
     return async (message: string, data: Record<string, any> = {}) => {
-      const context = { ...baseContext, ...data };
+      const safe = maskLogData(data) as Record<string, any>;
+      const context = { ...baseContext, ...safe };
       fallbackLogger[level](message, context);
-      await sendToKafka(level, message, data);
+      await sendToKafka(level, message, safe);
     };
   }
 

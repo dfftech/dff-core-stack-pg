@@ -303,8 +303,26 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO query_loads (id, query, params, use_cache, is_public, created_by, created_on, updated_by, updated_on)
 VALUES (
   'SETTING_S3',
-  'SELECT code AS key, name AS label, (NOT active) AS disabled, data AS lang FROM app_settings WHERE id = ''integration_s3''',
-  '{"id":"integration_s3"}'::jsonb,
+  'SELECT id AS key, name AS label, (NOT active) AS disabled, data AS lang FROM app_settings WHERE id IN (''integration_s3_public'', ''integration_s3_private'') ORDER BY id',
+  '{}'::jsonb,
+  TRUE, FALSE, 'System', now(), 'System', now()
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO query_loads (id, query, params, use_cache, is_public, created_by, created_on, updated_by, updated_on)
+VALUES (
+  'SETTING_S3_PUBLIC',
+  'SELECT code AS key, name AS label, (NOT active) AS disabled, data AS lang FROM app_settings WHERE id = ''integration_s3_public''',
+  '{"id":"integration_s3_public"}'::jsonb,
+  TRUE, FALSE, 'System', now(), 'System', now()
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO query_loads (id, query, params, use_cache, is_public, created_by, created_on, updated_by, updated_on)
+VALUES (
+  'SETTING_S3_PRIVATE',
+  'SELECT code AS key, name AS label, (NOT active) AS disabled, data AS lang FROM app_settings WHERE id = ''integration_s3_private''',
+  '{"id":"integration_s3_private"}'::jsonb,
   TRUE, FALSE, 'System', now(), 'System', now()
 )
 ON CONFLICT (id) DO NOTHING;

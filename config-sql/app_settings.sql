@@ -26,8 +26,13 @@ VALUES ('integration_smtp', 'integration', 'smtp', 'SMTP Settings', false,
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integration_s3', 'integration', 's3', 'S3 Bucket Settings', false,
+VALUES ('integration_s3_public', 'integration', 's3_public', 'S3 Public Bucket Settings', false,
 '{"enabled":true,"bucket":"","region":"us-east-1","access_key":"","secret_key":"","endpoint":"","base_url":"","folder":"","expires":300,"acl":"public-read"}'::jsonb)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO app_settings (id, type, code, name, is_public, data)
+VALUES ('integration_s3_private', 'integration', 's3_private', 'S3 Private Bucket Settings', false,
+'{"enabled":true,"bucket":"","region":"us-east-1","access_key":"","secret_key":"","endpoint":"","base_url":"","folder":"","expires":300,"acl":"private"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)

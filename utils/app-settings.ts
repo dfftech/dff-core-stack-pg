@@ -2,9 +2,11 @@ import type { Pool } from "pg";
 import { session_db } from "./app-util";
 
 export const SETTING_SMTP = "integration_smtp";
-export const SETTING_S3 = "integration_s3";
+export const SETTING_S3_PUBLIC = "integration_s3_public";
+export const SETTING_S3_PRIVATE = "integration_s3_private";
+export const SETTING_S3 = SETTING_S3_PUBLIC;
 
-/** Load `app_settings.data` by id (e.g. integration_smtp, integration_s3). */
+/** Load `app_settings.data` by id (e.g. integration_smtp, integration_s3_public). */
 export async function loadAppSetting(id: string): Promise<Record<string, unknown>> {
   const db = session_db() as { $client?: Pool } | undefined;
   const pool = db?.$client;

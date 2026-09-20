@@ -11,9 +11,10 @@ Do **not** hardcode SMTP/S3 secrets. Mail and sss read:
 | Setting id | Used by |
 | --- | --- |
 | `integration_smtp` | `POST /mail-send` (nodemailer) |
-| `integration_s3` | `GET /sss-url` (folder, base_url, expires) |
+| `integration_s3_public` | `GET /sss-url?fileName=` public upload + download |
+| `integration_s3_private` | `GET /sss-url?fileName=&private=true` signed upload + download |
 
-Fill rows in `app_settings` (query-load `SETTING_SMTP` / `SETTING_S3`). Env `CORE_MAIL_*` is only a fallback if SMTP username/password are empty.
+Fill rows in `app_settings` (query-load `SETTING_SMTP` / `SETTING_S3_PUBLIC` / `SETTING_S3_PRIVATE`). Env `CORE_MAIL_*` is only a fallback if SMTP username/password are empty.
 
 SMTP `data`: `enabled`, `service`, `host`, `port`, `username`, `password`, `encryption`, `secure`, `from_email`, `from_name`, `reply_to`.
 
@@ -64,7 +65,7 @@ Passing only `{ "otp": "500827" }` works for OTP mails (defaults from the en-US 
 | --- | --- |
 | Handlebars | `CallHbs` from `dff-util` |
 | SMTP | nodemailer + `app_settings.integration_smtp` |
-| Object URL | Encore `Bucket` + `app_settings.integration_s3` folder/base_url/expires |
+| Object URL | Encore `Bucket` (or AWS SigV4 when `access_key`/`bucket` are set) + `integration_s3_public` / `integration_s3_private` |
 
 ## Endpoints
 
@@ -92,7 +93,7 @@ The **auth** module sends mail when `userid` is an email:
 
 ### sss
 
-`GET /sss-url?fileName=` — signed PUT (ttl from S3 `expires`, default 300) and download URL (`base_url` + key, else Encore `publicUrl`). Key is `{folder}/{name}-{uuid}{ext}`.
+`GET /sss-url?fileName=` — public (`integration_s3_public`). `GET /sss-url?fileName=&private=true` — private (`integration_s3_private`). Public download is `base_url` or Encore `publicUrl`. Private download is a signed GET. Key is `{folder}/{name}-{uuid}{ext}`.
 
 ## Bruno
 

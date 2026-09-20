@@ -1,0 +1,33 @@
+meta {
+  name: Profile Save
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/profile-save
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "ADMIN_ADMIN",
+    "name": "Admin User",
+    "nameLang": { "en-US": "admin" },
+    "email": "admin@admin.com",
+    "mobile": "0000000001",
+    "telCode": "91",
+    "persona": "admin",
+    "roles": ["ADMIN_ADMIN"],
+    "active": true,
+    "provider": "password",
+    "password": "YWRtaW4="
+  }
+}

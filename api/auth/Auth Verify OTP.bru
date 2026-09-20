@@ -1,0 +1,26 @@
+meta {
+  name: Auth Verify OTP
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth-verify-otp
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "otp": "123456",
+    "otpId": "OTP_ID",
+    "uid": "new@user.com",
+    "navigate": true
+  }
+}

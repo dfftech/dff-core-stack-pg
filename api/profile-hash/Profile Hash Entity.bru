@@ -1,0 +1,14 @@
+meta {
+  name: Profile Hash Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/profile-hash-entity/SUPER_ADMIN
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

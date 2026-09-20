@@ -1,0 +1,16 @@
+meta {
+  name: Profile Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/profile-entity/ADMIN_ADMIN
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

@@ -1,0 +1,101 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = TEST
+
+### 1. Signin
+POST {{hosturl}}/auth-signin
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "super@admin.com",
+  "password": "YWRtaW4=",
+  "provider": "password"
+}
+
+### 2. Signup
+POST {{hosturl}}/auth-signup
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "new@user.com",
+  "password": "YWRtaW4=",
+  "name": "New User",
+  "persona": "user",
+  "provider": "password",
+  "telCode": "91"
+}
+
+### 3. Send OTP
+POST {{hosturl}}/auth-send-otp
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "new@user.com",
+  "lang": "en-US"
+}
+
+### 4. Verify OTP
+POST {{hosturl}}/auth-verify-otp
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "otp": "123456",
+  "otpId": "OTP_ID",
+  "uid": "new@user.com",
+  "navigate": true
+}
+
+### 5. Forgot Password
+POST {{hosturl}}/auth-forgot-password
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "super@admin.com",
+  "lang": "en-US"
+}
+
+### 6. Reset Password
+POST {{hosturl}}/auth-reset-password
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "super@admin.com",
+  "otpId": "OTP_ID",
+  "password": "YWRtaW4="
+}
+
+### 7. Verify Account
+POST {{hosturl}}/auth-verify-account
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "new@user.com",
+  "otpId": "OTP_ID"
+}
+
+### 8. Google Signin
+POST {{hosturl}}/auth-google-signin
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "userid": "user@gmail.com",
+  "token": "GOOGLE_ID_TOKEN",
+  "persona": "user"
+}

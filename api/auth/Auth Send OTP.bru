@@ -1,0 +1,24 @@
+meta {
+  name: Auth Send OTP
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth-send-otp
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userid": "new@user.com",
+    "lang": "en-US"
+  }
+}

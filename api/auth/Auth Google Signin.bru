@@ -1,0 +1,25 @@
+meta {
+  name: Auth Google Signin
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/auth-google-signin
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userid": "user@gmail.com",
+    "token": "GOOGLE_ID_TOKEN",
+    "persona": "user"
+  }
+}

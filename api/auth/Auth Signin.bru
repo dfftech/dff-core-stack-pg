@@ -1,0 +1,25 @@
+meta {
+  name: Auth Signin
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth-signin
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userid": "super@admin.com",
+    "password": "YWRtaW4=",
+    "provider": "password"
+  }
+}

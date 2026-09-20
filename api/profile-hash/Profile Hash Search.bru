@@ -1,0 +1,25 @@
+meta {
+  name: Profile Hash Search
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/profile-hash-search
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "limit": 10,
+    "skip": 0,
+    "filters": "{\"provider\":\"password\"}"
+  }
+}

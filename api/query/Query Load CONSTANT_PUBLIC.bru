@@ -1,0 +1,21 @@
+meta {
+  name: Query Load CONSTANT_PUBLIC
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/query-load/CONSTANT_PUBLIC?type=persona&active=false
+  body: none
+  auth: none
+}
+
+params:query {
+  type: persona
+  active: false
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

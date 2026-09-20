@@ -18,7 +18,7 @@ export default class QueryListService {
   static async ListService(
     id: string,
     paramObj: Record<string, string>,
-    opts?: Pick<SearchType, "limit" | "skip" | "orderBy">
+    opts?: SearchType
   ): Promise<ResponseType> {
     try {
       const pool = sessionPool();

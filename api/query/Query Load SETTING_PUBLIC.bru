@@ -1,15 +1,17 @@
 meta {
-  name: Query Load PROFILE
+  name: Query Load SETTING_PUBLIC
   type: http
-  seq: 3
+  seq: 10
 }
 
 get {
-  url: {{baseUrl}}/query-load/PROFILE?persona=admin
+  url: {{baseUrl}}/query-load/SETTING_PUBLIC
+  body: none
+  auth: none
 }
 
 params:query {
-  persona: admin
+  type: branding
   active: true
 }
 

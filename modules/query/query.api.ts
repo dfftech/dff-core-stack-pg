@@ -1,15 +1,27 @@
 import { api } from "encore.dev/api";
-import type { ResponseType } from "../../utils/app-types";
 import type {
-  QueryByIdRequest,
-  QueryListApiRequest,
-} from "./query-types";
+  RequestByIdType,
+  RequestQueryType,
+  ResponseType,
+  SearchType,
+} from "../../utils/app-types";
 import QueryLoadService from "./query-load.service";
 import QueryReportService from "./query-report.service";
 import QueryListService from "./query-list.service";
 import { query_params } from "../../utils/app-util";
 
-const URL_PARAM_SKIP = new Set(["limit", "skip", "orderBy", "params"]);
+type QueryByIdRequest = RequestByIdType & RequestQueryType;
+type QueryListRequest = RequestByIdType & RequestQueryType & SearchType;
+
+const URL_PARAM_SKIP = new Set([
+  "limit",
+  "skip",
+  "orderBy",
+  "order",
+  "query",
+  "params",
+  "filters",
+]);
 
 function parseParamsJson(raw?: string): Record<string, string> {
   if (!raw) return {};
@@ -26,14 +38,15 @@ function parseParamsJson(raw?: string): Record<string, string> {
   }
 }
 
-function asParams(req: {
-  params?: string;
-  persona?: string;
-}): Record<string, string> {
+/** Query string keys (type, active, persona, …) become {{params.key}} in SQL. */
+function asParams(req: RequestQueryType & SearchType): Record<string, string> {
   const fromUrl = query_params();
   const out: Record<string, string> = {
     ...parseParamsJson(fromUrl.params),
-    ...parseParamsJson(req.params),
+    ...parseParamsJson(fromUrl.filters),
+    ...parseParamsJson(fromUrl.query),
+    ...parseParamsJson(req.query),
+    ...parseParamsJson(req.filters),
   };
 
   for (const [k, v] of Object.entries(fromUrl)) {
@@ -41,9 +54,9 @@ function asParams(req: {
     out[k] = v;
   }
 
-  if (req.persona !== undefined && req.persona !== "") {
-    out.persona = String(req.persona);
-  }
+  if (req.searchTerm) out.searchTerm = req.searchTerm;
+  if (req.active !== undefined) out.active = String(req.active);
+
   return out;
 }
 
@@ -70,17 +83,13 @@ export const QueryReport = api<QueryByIdRequest, ResponseType>(
   }
 );
 
-export const QueryList = api<QueryListApiRequest, ResponseType>(
+export const QueryList = api<QueryListRequest, ResponseType>(
   {
     expose: true,
     method: "GET",
     path: "/query-list/:id",
   },
   async (req) => {
-    return QueryListService.ListService(req.id, asParams(req), {
-      limit: req.limit,
-      skip: req.skip,
-      orderBy: req.orderBy,
-    });
+    return QueryListService.ListService(req.id, asParams(req), req);
   }
 );

@@ -1,0 +1,21 @@
+meta {
+  name: Sss Put Upload
+  type: http
+  seq: 3
+}
+
+put {
+  url: https://dtf-boltnbolt-nprd.s3.ca-central-1.amazonaws.com/local/JetBrainMonoFont-2d576e4f-be0f-431f-ad98-0124726a5af9.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAXNMCEQCQNHORYQ64%2F20260920%2Fca-central-1%2Fs3%2Faws4_request&X-Amz-Date=20260920T190441Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=0785a2fb9dbf3bb8cce4ce4d3f041300cc8ffdd70f790dcab1fbe7eb46d2423a
+  body: file
+  auth: none
+}
+
+body:file {
+  file: @file(/Volumes/work/JetBrainMonoFont.png) @contentType(image/png)
+}
+
+docs {
+  PUT the file bytes to the signed upload URL from GET /sss-url (data.upload).
+  Do not send Authorization or Content-Type — the signature only includes host.
+  This URL expires in 300s; paste a fresh data.upload if you get 403.
+}

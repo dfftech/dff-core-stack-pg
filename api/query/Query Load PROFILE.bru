@@ -1,0 +1,18 @@
+meta {
+  name: Query Load PROFILE
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/query-load/PROFILE
+}
+
+params:query {
+  persona: admin
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

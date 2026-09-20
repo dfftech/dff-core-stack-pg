@@ -43,3 +43,4 @@ export type RequestBodyType = Record<string, JsonValueType>;
 export type RequestByIdType = {
   id: string;
 };
+

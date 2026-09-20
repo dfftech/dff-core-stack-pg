@@ -1,0 +1,18 @@
+meta {
+  name: Query Load with params JSON
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/query-load/PROFILE
+}
+
+params:query {
+  params: {"persona":"admin"}
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

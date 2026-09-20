@@ -1,0 +1,14 @@
+meta {
+  name: Query Load LANG (public)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/query-load/LANG
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

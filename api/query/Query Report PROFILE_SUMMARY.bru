@@ -1,0 +1,14 @@
+meta {
+  name: Query Report PROFILE_SUMMARY_BY_PERSONA
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/query-report/PROFILE_SUMMARY_BY_PERSONA
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

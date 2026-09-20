@@ -1,0 +1,7 @@
+{
+  "version": "1",
+  "name": "dff-core-stack-pg",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"],
+  "defaultEnvironment": "local"
+}

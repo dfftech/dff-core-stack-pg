@@ -1,7 +1,7 @@
 import { Client } from "pg";
 import { APP_SCHEMA, CORE_URL } from "./db-url";
 import { getCorePool, syncTenantPools } from "./db-pool";
-import { runConfigSqlOnTenantChange } from "./config-sql";
+import { runConfigSqlForTenant } from "./config-sql";
 
 const CHANNEL = "tenant_change";
 const TRIGGER_NAME = "tenants_notify_trigger";
@@ -22,6 +22,15 @@ function safeNotifySummary(payload?: string): string {
     return JSON.stringify({ op: p.op, id: p.id, active: p.active });
   } catch {
     return "(unparsed)";
+  }
+}
+
+function parseTenantPayload(payload?: string): { op?: string; id?: string; active?: boolean } {
+  if (!payload) return {};
+  try {
+    return JSON.parse(payload) as { op?: string; id?: string; active?: boolean };
+  } catch {
+    return {};
   }
 }
 
@@ -46,8 +55,9 @@ async function triggerExists(): Promise<boolean> {
 }
 
 /**
- * Ensure notify function + AFTER INSERT/UPDATE/DELETE trigger on tenants.
- * Payload never includes db URL (sync reloads from table).
+ * Ensure notify function + AFTER INSERT/UPDATE/DELETE trigger on tenants table only.
+ * (Not on other / core app tables — notification is tenants-only.)
+ * Payload never includes db URL.
  */
 export async function ensureTenantChangeTrigger(): Promise<void> {
   const schema = quoteIdent(APP_SCHEMA);
@@ -55,7 +65,6 @@ export async function ensureTenantChangeTrigger(): Promise<void> {
   const table = `${schema}.${quoteIdent("tenants")}`;
   const pool = getCorePool();
 
-  // Always replace function so payload stays free of connection URLs
   await pool.query(`
     CREATE OR REPLACE FUNCTION ${fn}()
     RETURNS trigger
@@ -84,7 +93,7 @@ export async function ensureTenantChangeTrigger(): Promise<void> {
     return;
   }
 
-  console.log(`[db-event] creating trigger "${TRIGGER_NAME}" on ${APP_SCHEMA}.tenants`);
+  console.log(`[db-event] creating trigger "${TRIGGER_NAME}" on ${APP_SCHEMA}.tenants only`);
 
   await pool.query(`
     CREATE TRIGGER ${quoteIdent(TRIGGER_NAME)}
@@ -110,9 +119,19 @@ async function startTenantChangeListener(): Promise<void> {
   client.on("notification", (msg) => {
     if (msg.channel !== CHANNEL) return;
     console.log("[db-event] tenants table changed:", safeNotifySummary(msg.payload));
+
+    const change = parseTenantPayload(msg.payload);
+
     void (async () => {
       await syncTenantPools();
-      await runConfigSqlOnTenantChange();
+
+      // config-sql only for the changed tenant — not every tenant
+      if (!change.id || change.op === "DELETE" || change.active === false) {
+        console.log("[db-event] skip config-sql (deleted or inactive tenant)");
+        return;
+      }
+
+      await runConfigSqlForTenant(change.id);
     })().catch((err) => {
       console.error("[db-event] tenant change sync/config-sql failed:", err);
     });
@@ -123,7 +142,7 @@ async function startTenantChangeListener(): Promise<void> {
   });
 
   listenClient = client;
-  console.log(`[db-event] listening on channel "${CHANNEL}"`);
+  console.log(`[db-event] listening on channel "${CHANNEL}" (tenants table only)`);
 }
 
 export async function stopTenantEvents(): Promise<void> {
@@ -142,10 +161,7 @@ export async function stopTenantEvents(): Promise<void> {
   console.log("[db-event] listener stopped");
 }
 
-/**
- * If IS_TENANT: ensure trigger exists, then LISTEN for tenant changes
- * and sync pool + map on every notify.
- */
+/** If IS_TENANT: ensure trigger on tenants table only, then LISTEN. */
 export async function initTenantEvents(): Promise<void> {
   if (started) return;
   await ensureTenantChangeTrigger();

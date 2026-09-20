@@ -21,17 +21,17 @@ CREATE INDEX IF NOT EXISTS app_settings_active_idx ON app_settings (active);
 CREATE INDEX IF NOT EXISTS app_settings_is_public_idx ON app_settings (is_public);
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integrations_smtp', 'integration', 'smtp', 'SMTP Settings', false,
+VALUES ('integration_smtp', 'integration', 'smtp', 'SMTP Settings', false,
 '{"host":"","port":587,"username":"","password":"","encryption":"tls","from_email":"","from_name":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integrations_s3', 'integration', 's3', 'S3 Bucket Settings', false,
+VALUES ('integration_s3', 'integration', 's3', 'S3 Bucket Settings', false,
 '{"bucket":"","region":"","access_key":"","secret_key":"","base_url":"","folder":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
-VALUES ('integrations_google_map', 'integration', 'google_map', 'Google Map Settings', false,
+VALUES ('integration_google_map', 'integration', 'google_map', 'Google Map Settings', false,
 '{"enabled":false,"api_key":"","default_latitude":"","default_longitude":"","zoom":12}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 

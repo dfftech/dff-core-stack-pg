@@ -25,22 +25,14 @@ export async function runConfigSqlAfterInit(isTenant: boolean): Promise<void> {
   }
 }
 
-/**
- * After tenants table change (sync pools first, then re-apply config-sql).
- * Idempotent — safe to re-run (IF NOT EXISTS / ON CONFLICT DO NOTHING).
- */
-export async function runConfigSqlOnTenantChange(): Promise<void> {
-  const ids = Array.from(tenantPools.keys());
-  if (ids.length === 0) {
-    console.log("[config-sql] tenant change: no tenant pools, skip");
+/** Run config-sql for one tenant only (after that tenant row changed). */
+export async function runConfigSqlForTenant(tenantId: string): Promise<void> {
+  const pool = tenantPools.get(tenantId);
+  if (!pool) {
+    console.log(`[config-sql] tenant:${tenantId}: no pool, skip`);
     return;
   }
-
-  for (const tenantId of ids) {
-    const pool = tenantPools.get(tenantId);
-    if (!pool) continue;
-    await runConfigSqlOnPool(pool, `tenant:${tenantId}`);
-  }
+  await runConfigSqlOnPool(pool, `tenant:${tenantId}`);
 }
 
 export { runConfigSqlOnPool } from "./runner";

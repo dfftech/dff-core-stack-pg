@@ -1,0 +1,14 @@
+meta {
+  name: Translation Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/translation-entity/app_name
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

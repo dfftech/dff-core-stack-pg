@@ -1,0 +1,26 @@
+meta {
+  name: Translation Search Type Lang
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/translation-search
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "auth",
+    "lang": "en-US",
+    "limit": 50,
+    "skip": 0
+  }
+}

@@ -1,6 +1,7 @@
 - app_constants
 - app_settings
 - lang
+- translation
 - otp_verifications
 - profiles
 - profile_hashes

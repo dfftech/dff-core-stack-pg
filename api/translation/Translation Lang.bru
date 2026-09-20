@@ -1,0 +1,21 @@
+meta {
+  name: Translation Lang
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/translation-lang
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {}
+}

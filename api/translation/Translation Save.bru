@@ -1,0 +1,30 @@
+meta {
+  name: Translation Save
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/translation-save
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "type": "app",
+    "key": "name",
+    "data": {
+      "en-US": "YourAppName",
+      "en-CA": "YourAppName",
+      "hi-IN": "आपका ऐप"
+    },
+    "active": true
+  }
+}

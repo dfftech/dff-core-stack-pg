@@ -1,0 +1,24 @@
+meta {
+  name: Translation Fill
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/translation-fill
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "lang": "ar-SA",
+    "source": "en-US"
+  }
+}

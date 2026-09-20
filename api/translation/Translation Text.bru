@@ -1,0 +1,25 @@
+meta {
+  name: Translation Text
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/translation-text
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "text": "Your password was reset successfully",
+    "source": "en-US",
+    "target": "hi-IN"
+  }
+}

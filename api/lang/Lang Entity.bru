@@ -1,0 +1,14 @@
+meta {
+  name: Lang Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/lang-entity/en-US
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

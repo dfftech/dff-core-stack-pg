@@ -1,0 +1,14 @@
+meta {
+  name: Translation Map
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/translation-map/en-US
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

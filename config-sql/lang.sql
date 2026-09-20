@@ -33,3 +33,51 @@ VALUES (
   now()
 )
 ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO lang (id, lang, country, name, dir, locale, active, created_by, updated_by, created_at, updated_at)
+VALUES (
+  'en-CA',
+  'en',
+  'CA',
+  'English',
+  'ltr',
+  'English',
+  TRUE,
+  'System',
+  'System',
+  now(),
+  now()
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO lang (id, lang, country, name, dir, locale, active, created_by, updated_by, created_at, updated_at)
+VALUES (
+  'ar-SA',
+  'ar',
+  'SA',
+  'Arabic',
+  'rtl',
+  'العربية',
+  TRUE,
+  'System',
+  'System',
+  now(),
+  now()
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO lang (id, lang, country, name, dir, locale, active, created_by, updated_by, created_at, updated_at)
+VALUES (
+  'hi-IN',
+  'hi',
+  'IN',
+  'Hindi',
+  'ltr',
+  'हिन्दी',
+  TRUE,
+  'System',
+  'System',
+  now(),
+  now()
+)
+ON CONFLICT (id) DO NOTHING;

@@ -1,0 +1,14 @@
+meta {
+  name: Otp Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/otp-entity/OTP_ID
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

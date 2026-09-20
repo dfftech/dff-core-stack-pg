@@ -1,0 +1,25 @@
+meta {
+  name: Otp Search
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/otp-search
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "searchTerm": "admin@admin.com",
+    "limit": 10,
+    "skip": 0
+  }
+}

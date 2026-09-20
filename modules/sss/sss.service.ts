@@ -1,12 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { ResponseType } from "../../utils/app-types";
 import { logger } from "../../utils/app-util";
-import {
-  SETTING_S3,
-  loadAppSetting,
-  settingNumber,
-  settingText,
-} from "../../utils/app-settings";
+import { SETTING_S3, settingNumber, settingText } from "../../utils/app-settings";
+import AppSettingService from "../app-setting/app-setting.service";
 import { sssFiles } from "./sss.bucket";
 import type { SssUrlRequest } from "./sss.dto";
 
@@ -26,10 +22,10 @@ export default class SssService {
       const fileName = String(input.fileName || "").trim();
       if (!fileName) return { data: null, error: "INVALID_DATA" };
 
-      const s3 = await loadAppSetting(SETTING_S3);
+      const s3 = await AppSettingService.DataByIdService(SETTING_S3);
       const folder = settingText(s3, "folder");
       const baseUrl = settingText(s3, "base_url").replace(/\/+$/, "");
-      const ttl = settingNumber(s3, "expires", 3000);
+      const ttl = settingNumber(s3, "expires", 300);
       const key = this.UniqueKey(fileName, folder);
       const signed = await sssFiles.signedUploadUrl(key, { ttl });
       const download = baseUrl ? `${baseUrl}/${key}` : sssFiles.publicUrl(key);

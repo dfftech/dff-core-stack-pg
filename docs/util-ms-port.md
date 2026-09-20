@@ -38,30 +38,25 @@ Render passes `{ data: <payload> }` into `CallHbs`. Lookup: exact id → `{name}
 
 OTP is **centered**. Optional `messageAbove` / `messageBelow` wrap it (aliases: `smsStartMessage` / `smsEndMessage`). If omitted, the language row supplies default copy.
 
-Seeded:
+Seeded email templates (send with `templateId` = **name**, plus `lang`):
 
-- `otp-email` / `en-US` — HTML email
-- `otp-sms` / `en-US` — plain text
-- `forgot-password` / `en-US`
+| Use | templateId (`name`) | Row id | Data |
+| --- | --- | --- | --- |
+| Send OTP (signup, send-otp, forgot-password) | `otp-email` | `otp-email_en-US` | `otp`, optional `messageAbove` / `messageBelow` / `logoUrl` |
+| Reset password success | `reset-password-success` | `reset-password-success_en-US` | optional `messageAbove` / `messageBelow` / `logoUrl` |
+| Send OTP SMS (render only) | `otp-sms` | `otp-sms_en-US` | `otp`, optional above/below |
 
-Add another language by inserting a row with the same `name` and a different `lang` (must exist in `lang`).
+`POST /mail-send` examples:
 
 ```json
-{
-  "templateId": "otp-email",
-  "lang": "en-US",
-  "data": {
-    "otp": "500827",
-    "logoUrl": "https://www.w3.org/Icons/w3c_home.png",
-    "messageAbove": "Your one-time password is:",
-    "messageBelow": "Do not share this code with anyone. It expires soon."
-  },
-  "to": "admin@example.com",
-  "attachments": ["https://www.w3.org/Icons/w3c_home.png"]
-}
+{ "templateId": "otp-email", "lang": "en-US", "to": "admin@example.com", "data": { "otp": "500827", "logoUrl": "https://www.w3.org/Icons/w3c_home.png" }, "attachments": ["https://www.w3.org/Icons/w3c_home.png"] }
 ```
 
-Passing only `{ "otp": "500827" }` also works (defaults from the en-US template).
+```json
+{ "templateId": "reset-password-success", "lang": "en-US", "to": "admin@example.com", "data": {} }
+```
+
+Passing only `{ "otp": "500827" }` works for OTP mails (defaults from the en-US template).
 
 ## Libraries
 
@@ -84,9 +79,16 @@ Headers: `Authorization: Bearer <jwt>`, `x-tenant-id: <tenant>` (when multi-tena
 
 ### mail
 
-`POST /mail-send` `{ templateId, lang?, data, to, subject?, attachments }`
+`POST /mail-send` `{ templateId, lang?, data, to, subject?, attachments }`. Subject falls back to the template row. SMTP comes from `integration_smtp`.
 
-Subject falls back to the template row. SMTP comes from `integration_smtp`.
+The **auth** module sends mail when `userid` is an email:
+
+| Auth API | When | templateId |
+| --- | --- | --- |
+| `POST /auth-signup` | New account — send OTP to verify | `otp-email` |
+| `POST /auth-send-otp` | Resend OTP (login / verify) | `otp-email` |
+| `POST /auth-forgot-password` | User forgot password — same send-OTP mail, then verify OTP and reset | `otp-email` |
+| `POST /auth-reset-password` | After OTP is verified — new password saved | `reset-password-success` |
 
 ### sss
 

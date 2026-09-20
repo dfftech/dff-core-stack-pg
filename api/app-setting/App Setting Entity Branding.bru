@@ -1,0 +1,14 @@
+meta {
+  name: App Setting Entity Branding
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/app-setting-entity/branding_company
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

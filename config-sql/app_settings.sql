@@ -37,7 +37,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
 VALUES ('branding_company', 'branding', 'company', 'Company Branding', true,
-'{"app_name":"","company_name":"","logo_url":"","favicon_url":"","footer_logo_url":"","primary_color":"","secondary_color":""}'::jsonb)
+'{"app_name":"YourAppName","company_name":"YourBrandName","logo_url":"https://www.w3.org/Icons/w3c_home.png","favicon_url":"https://www.w3.org/favicon.ico","footer_logo_url":"https://www.w3.org/Icons/w3c_home.png","primary_color":"#2563EB","secondary_color":"#64748B"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)

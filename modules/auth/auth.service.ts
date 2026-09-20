@@ -7,12 +7,15 @@ import {
   JwtEncode,
   toViewMapper,
 } from "dff-util";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import type { RequestBodyType, ResponseType, SearchType } from "../../utils/app-types";
 import { env, logger, session_user } from "../../utils/app-util";
 import ProfileHashService from "../profile-hash/profile-hash.service";
 import ProfileService from "../profile/profile.service";
 import { profileEntity } from "../profile/profile.entity";
 import OtpService from "../otp/otp.service";
+import MailService from "../mail/mail.service";
+import AppSettingService from "../app-setting/app-setting.service";
+import { settingText } from "../../utils/app-settings";
 import type {
   AuthProfile,
   ForgotPasswordDto,
@@ -150,7 +153,10 @@ export default class AuthService {
     });
 
     const profile = saved.data as AuthProfile;
-    const otpRes = await this.issueOtp(dto.userid, profile.name);
+    const otpRes = await this.issueOtp(dto.userid, profile.name, {
+      lang: dto.lang?.[0],
+      templateId: "otp-email",
+    });
     log.info("User created", { id: profile.id, otpId: otpRes?.id });
     return {
       message: AuthProps.SIGNUP_SUCCESSFULLY,
@@ -161,14 +167,53 @@ export default class AuthService {
     };
   }
 
-  static async issueOtp(uid: string, _name?: string) {
-    return OtpService.CreateOtpService({ uid });
+  static async SendAuthMail(
+    to: string,
+    templateId: string,
+    lang: string | undefined,
+    data: RequestBodyType
+  ) {
+    if (this.GetIdType(to) !== "email") return;
+    const log = logger();
+    try {
+      const branding = await AppSettingService.DataByIdService("branding_company");
+      const logoUrl = settingText(branding, "logo_url");
+      const sent = await MailService.SendService({
+        templateId,
+        lang: lang || "en-US",
+        to,
+        data: {
+          ...(logoUrl ? { logoUrl } : {}),
+          ...data,
+        },
+      });
+      if (sent.error) log.error(`Auth mail not sent (${templateId})`, { to, error: sent.error });
+    } catch (error) {
+      log.error(`Auth mail failed (${templateId}): ${error}`);
+    }
+  }
+
+  static async issueOtp(
+    uid: string,
+    _name?: string,
+    options?: { lang?: string; templateId?: string }
+  ) {
+    const otpRes = await OtpService.CreateOtpService({ uid });
+    if (otpRes?.otp) {
+      await this.SendAuthMail(uid, options?.templateId || "otp-email", options?.lang, {
+        otp: otpRes.otp,
+      });
+    }
+    return otpRes;
   }
 
   static async ForgotPasswordService(dto: ForgotPasswordDto) {
     const profile = await this.FindProfileByUserid(dto.userid);
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);
-    const otpRes = await this.issueOtp(dto.userid, profile.name);
+    const otpRes = await this.issueOtp(dto.userid, profile.name, {
+      lang: dto.lang,
+      templateId: "otp-email",
+    });
     return { otpId: otpRes?.id, uid: dto.userid, message: ConstKeys.EMAIL_SENT };
   }
 
@@ -184,6 +229,7 @@ export default class AuthService {
       provider: "password",
       password: dto.password,
     });
+    await this.SendAuthMail(dto.userid, "reset-password-success", undefined, {});
     return { message: AuthProps.PASSWORD_RESET_SUCCESSFUL };
   }
 
@@ -241,7 +287,10 @@ export default class AuthService {
   static async SendOtpService(dto: SendOtpDto) {
     const profile = await this.FindProfileByUserid(dto.userid);
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);
-    const otpRes = await this.issueOtp(dto.userid, profile.name);
+    const otpRes = await this.issueOtp(dto.userid, profile.name, {
+      lang: dto.lang,
+      templateId: "otp-email",
+    });
     return { message: AuthProps.OTP_SENT, otpId: otpRes?.id, uid: dto.userid };
   }
 

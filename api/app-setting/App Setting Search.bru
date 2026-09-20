@@ -1,0 +1,26 @@
+meta {
+  name: App Setting Search
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/app-setting-search
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "searchTerm": "branding",
+    "limit": 10,
+    "skip": 0,
+    "filters": "{\"type\":\"branding\"}"
+  }
+}

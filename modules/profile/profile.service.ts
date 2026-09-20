@@ -175,7 +175,7 @@ export default class ProfileService {
 
     log.info("Searched profiles", { total: totalRow[0]?.value ?? 0 });
     return {
-      data: rows.map((r) => toViewMapper(r)),
+      data: rows.map((r: Record<string, unknown>) => toViewMapper(r)),
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,

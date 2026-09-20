@@ -64,12 +64,21 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO template_files (id, name, lang, channel, subject, template, active, created_by, created_on, updated_by, updated_on)
 VALUES (
-  'forgot-password_en-US',
-  'forgot-password',
+  'reset-password-success_en-US',
+  'reset-password-success',
   'en-US',
   'email',
-  'Reset your password',
-  '<p>Your password reset token is <strong>{{data.token}}</strong>.</p>',
+  'Your password was reset',
+  $reset_password_success_en$
+<div style="font-family:Arial,Helvetica,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#111">
+  <div style="text-align:center;margin:0 0 24px">
+    <img src="{{#if data.logoUrl}}{{data.logoUrl}}{{else}}https://www.w3.org/Icons/w3c_home.png{{/if}}" alt="Logo" width="72" height="48" style="display:inline-block;border:0;max-width:160px;height:auto" />
+  </div>
+  <p style="margin:0 0 16px;font-size:16px;line-height:1.5">{{#if data.messageAbove}}{{data.messageAbove}}{{else}}Your password was reset successfully.{{/if}}</p>
+  <p style="margin:24px 0;text-align:center;font-size:22px;font-weight:700;line-height:1.2">Password updated</p>
+  <p style="margin:16px 0 0;font-size:14px;line-height:1.5;color:#555">{{#if data.messageBelow}}{{data.messageBelow}}{{else}}If you did not change your password, contact support immediately.{{/if}}</p>
+</div>
+$reset_password_success_en$,
   TRUE,
   'System',
   now(),

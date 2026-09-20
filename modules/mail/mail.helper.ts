@@ -1,11 +1,7 @@
 import { createTransport, type Transporter } from "nodemailer";
 import { env } from "../../utils/app-util";
-import {
-  SETTING_SMTP,
-  loadAppSetting,
-  settingNumber,
-  settingText,
-} from "../../utils/app-settings";
+import { SETTING_SMTP, settingNumber, settingText } from "../../utils/app-settings";
+import AppSettingService from "../app-setting/app-setting.service";
 
 type SmtpConfig = {
   host: string;
@@ -19,7 +15,7 @@ type SmtpConfig = {
 
 export class MailHelper {
   static async LoadSmtp(): Promise<SmtpConfig> {
-    const data = await loadAppSetting(SETTING_SMTP);
+    const data = await AppSettingService.DataByIdService(SETTING_SMTP);
     const user = settingText(data, "username") || env("MAIL_USER") || "";
     const pass = settingText(data, "password") || env("MAIL_PASS") || "";
     const host = settingText(data, "host");

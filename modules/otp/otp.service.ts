@@ -156,7 +156,7 @@ export default class OtpService {
       this.Db().select({ value: count() }).from(otpEntity).where(where),
     ]);
     return {
-      data: rows.map((r) => toViewMapper(r)),
+      data: rows.map((r: Record<string, unknown>) => toViewMapper(r)),
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,

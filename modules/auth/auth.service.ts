@@ -71,14 +71,8 @@ export default class AuthService {
 
   static async generateJwtToken(profile: AuthProfile): Promise<string> {
     const log = logger();
-    const secret =
-      env("JWT_SECRET") ||
-      process.env.JWT_SECRET ||
-      "c79cfbf323c17885fe6962b6d8cc150841fe555d1440642b966cae9df1a76af16cf02db292cab8f2faed884338c8ae2be87f9ddcdf0ea1a5049386af7565b2f3";
-    const key =
-      env("API_KEY") ||
-      process.env.API_ADMIN_KEY ||
-      "X7q#m9$Lp2@zW4v&K1!nB8*jR5%tY6^a";
+    const secret = env("API_JWT_SECRET") || "c79cfbf323c17885fe6962b6d8cc150841fe555d1440642b966cae9df1a76af16cf02db292cab8f2faed884338c8ae2be87f9ddcdf0ea1a5049386af7565b2f3";
+    const key = env("API_JWT_KEY") || "X7q#m9$Lp2@zW4v&K1!nB8*jR5%tY6^a";
     if (!secret || secret === "-") throw new Error("JWT configuration not available");
     try {
       return JwtEncode(

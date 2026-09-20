@@ -1,7 +1,6 @@
 import type { Pool } from "pg";
 import { toViewMapper } from "dff-util";
-import { getCorePool, get_tenant_pool, IS_TENANT } from "../../db/db-connection";
-import { session_user, tenant_id } from "../../utils/app-util";
+import { logger, session_db, session_user } from "../../utils/app-util";
 
 /** Session id "System" (case-insensitive) → public access mode. */
 export function isPublicSession(): boolean {
@@ -9,25 +8,12 @@ export function isPublicSession(): boolean {
   return id.toLowerCase() === "system";
 }
 
-/** Pool that holds query_* definition tables (tenant DB when multi-tenant). */
-export async function definitionPool(): Promise<Pool> {
-  if (IS_TENANT) {
-    const tid = tenant_id();
-    if (!tid) throw new Error("TENANT_REQUIRED");
-    return get_tenant_pool(tid);
-  }
-  return getCorePool();
-}
-
-/** Pool used to execute the built SQL. */
-export async function executionPool(isCore: boolean): Promise<Pool> {
-  if (isCore) return getCorePool();
-  if (IS_TENANT) {
-    const tid = tenant_id();
-    if (!tid) throw new Error("TENANT_REQUIRED");
-    return get_tenant_pool(tid);
-  }
-  return getCorePool();
+/** pg Pool for the current request session. Never the core registry DB. */
+export function sessionPool(): Pool {
+  const db = session_db() as { $client?: Pool } | undefined;
+  const pool = db?.$client;
+  if (!pool) throw new Error("SESSION_DB_REQUIRED");
+  return pool;
 }
 
 /**
@@ -49,8 +35,8 @@ export function buildPgQuery(
     while ((match = regex.exec(queryString)) !== null) {
       const key = match[1] || match[2] || match[3];
       text += queryString.substring(lastIndex, match.index);
-      values.push(params[key]);
-      text += `$${values.length}`;
+      values.push(params[key] ?? null);
+      text += `$${values.length}::text`;
       lastIndex = match.index + match[0].length;
     }
     text += queryString.substring(lastIndex);
@@ -62,6 +48,45 @@ export function buildPgQuery(
 
 export function mapRows(rows: Record<string, unknown>[]): unknown[] {
   return rows.map((r) => toViewMapper(r));
+}
+
+function sqlLiteral(value: unknown): string {
+  if (value === null || value === undefined) return "NULL";
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+/** Replace $1 / $1::text with bound values for readable logs. */
+function filledSql(text: string, values: unknown[]): string {
+  return text.replace(/\$(\d+)(?:::\w+)?/g, (match, n) => {
+    const idx = Number(n) - 1;
+    return idx >= 0 && idx < values.length ? sqlLiteral(values[idx]) : match;
+  });
+}
+
+export async function logSql(
+  id: string,
+  text: string,
+  values: unknown[]
+): Promise<void> {
+  const log = logger();
+  await log?.info?.("Executing query", {
+    id,
+    query: filledSql(text, values),
+  });
+}
+
+/** Combine definition defaults with request params; skip empty seed values like {persona:""}. */
+export function resolveParams(
+  defParams: Record<string, unknown> | null | undefined,
+  paramObj: Record<string, string>
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(defParams || {})) {
+    if (v === null || v === undefined || v === "") continue;
+    out[k] = v;
+  }
+  return { ...out, ...paramObj };
 }
 
 /** Allow only simple "col ASC|DESC" or "col1 desc, col2 asc" identifiers. */

@@ -70,6 +70,7 @@
   };
 
   function get_query_params(pathAndQuery: string): Record<string, string> {
+    if (!pathAndQuery) return {};
     const queryIndex = pathAndQuery.indexOf("?");
     if (queryIndex === -1) return {};
 

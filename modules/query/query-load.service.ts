@@ -3,10 +3,11 @@ import type { LoadQueryRow } from "./query-types";
 import { queryLoadEntity } from "./query-load.entity";
 import {
   buildPgQuery,
-  definitionPool,
-  executionPool,
   isPublicSession,
+  logSql,
   mapRows,
+  resolveParams,
+  sessionPool,
 } from "./query.helper";
 
 export default class QueryLoadService {
@@ -20,10 +21,10 @@ export default class QueryLoadService {
   ): Promise<ResponseType> {
     try {
       const isPublic = isPublicSession();
-      const defPool = await definitionPool();
+      const pool = sessionPool();
 
-      const defResult = await defPool.query<LoadQueryRow>(
-        `SELECT id, query, params, is_core, is_public
+      const defResult = await pool.query<LoadQueryRow>(
+        `SELECT id, query, params, is_public
          FROM query_loads WHERE id = $1 LIMIT 1`,
         [id]
       );
@@ -37,17 +38,14 @@ export default class QueryLoadService {
         return { data: null, error: "please contact admin" };
       }
 
-      const mergedParams = {
-        ...(queryDef.params || {}),
-        ...paramObj,
-      } as Record<string, unknown>;
+      const mergedParams = resolveParams(queryDef.params, paramObj);
 
       const built = buildPgQuery(queryDef.query, mergedParams);
       if (built.error) {
         return { data: null, error: `QUERY_BUILD_ERROR: ${built.error}` };
       }
 
-      const pool = await executionPool(queryDef.is_core);
+      await logSql(id, built.text!, built.values ?? []);
       const result = await pool.query({ text: built.text!, values: built.values });
       const data = mapRows((result?.rows as Record<string, unknown>[]) ?? []);
       return { data, status: "LOADED_SUCCESSFULLY" };

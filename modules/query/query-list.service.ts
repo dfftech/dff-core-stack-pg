@@ -3,10 +3,11 @@ import type { ListQueryRow } from "./query-types";
 import { queryListEntity } from "./query-list.entity";
 import {
   buildPgQuery,
-  definitionPool,
-  executionPool,
+  logSql,
   mapRows,
+  resolveParams,
   sanitizeOrder,
+  sessionPool,
 } from "./query.helper";
 
 export default class QueryListService {
@@ -20,9 +21,9 @@ export default class QueryListService {
     opts?: Pick<SearchType, "limit" | "skip" | "orderBy">
   ): Promise<ResponseType> {
     try {
-      const defPool = await definitionPool();
+      const pool = sessionPool();
 
-      const defResult = await defPool.query<ListQueryRow>(
+      const defResult = await pool.query<ListQueryRow>(
         `SELECT id, col, query, default_order, default_limit, params
          FROM query_lists WHERE id = $1 LIMIT 1`,
         [id]
@@ -33,10 +34,7 @@ export default class QueryListService {
         return { data: null, error: "RECORD_NOT_EXISTS" };
       }
 
-      const mergedParams = {
-        ...(queryDef.params || {}),
-        ...paramObj,
-      } as Record<string, unknown>;
+      const mergedParams = resolveParams(queryDef.params, paramObj);
 
       const built = buildPgQuery(queryDef.query, mergedParams);
       if (built.error) {
@@ -56,7 +54,7 @@ export default class QueryListService {
       values.push(skip);
       text += ` OFFSET $${values.length}`;
 
-      const pool = await executionPool(false);
+      await logSql(id, text, values);
       const result = await pool.query({ text, values });
       const data = mapRows((result?.rows as Record<string, unknown>[]) ?? []);
       return {

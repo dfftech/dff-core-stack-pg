@@ -4,7 +4,6 @@ export type LoadQueryRow = {
   id: string;
   query: string;
   params: Record<string, unknown> | null;
-  is_core: boolean;
   is_public: boolean;
 };
 
@@ -27,20 +26,20 @@ export type ListQueryRow = {
 };
 
 /** GET /query-load/:id and /query-report/:id */
-export type QueryByIdRequest = {
+export interface QueryByIdRequest {
   id: string;
   /** JSON object as string, e.g. {"persona":"admin"} */
   params?: Query<string>;
   /** Convenience query param (merged into params). */
   persona?: Query<string>;
-};
+}
 
 /** GET /query-list/:id */
-export type QueryListApiRequest = {
+export interface QueryListApiRequest {
   id: string;
   params?: Query<string>;
   persona?: Query<string>;
   limit?: Query<number>;
   skip?: Query<number>;
   orderBy?: Query<string>;
-};
+}

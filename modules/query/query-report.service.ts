@@ -3,9 +3,10 @@ import type { ReportQueryRow } from "./query-types";
 import { queryReportEntity } from "./query-report.entity";
 import {
   buildPgQuery,
-  definitionPool,
-  executionPool,
+  logSql,
   mapRows,
+  resolveParams,
+  sessionPool,
 } from "./query.helper";
 
 export default class QueryReportService {
@@ -18,9 +19,9 @@ export default class QueryReportService {
     paramObj: Record<string, string>
   ): Promise<ResponseType> {
     try {
-      const defPool = await definitionPool();
+      const pool = sessionPool();
 
-      const defResult = await defPool.query<ReportQueryRow>(
+      const defResult = await pool.query<ReportQueryRow>(
         `SELECT id, type, display_name, name, query, params
          FROM query_reports WHERE id = $1 LIMIT 1`,
         [id]
@@ -31,17 +32,14 @@ export default class QueryReportService {
         return { data: null, error: "RECORD_NOT_EXISTS" };
       }
 
-      const mergedParams = {
-        ...(queryDef.params || {}),
-        ...paramObj,
-      } as Record<string, unknown>;
+      const mergedParams = resolveParams(queryDef.params, paramObj);
 
       const built = buildPgQuery(queryDef.query, mergedParams);
       if (built.error) {
         return { data: null, error: `QUERY_BUILD_ERROR: ${built.error}` };
       }
 
-      const pool = await executionPool(false);
+      await logSql(id, built.text!, built.values ?? []);
       const result = await pool.query({ text: built.text!, values: built.values });
       const data = mapRows((result?.rows as Record<string, unknown>[]) ?? []);
       return {

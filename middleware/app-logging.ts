@@ -37,7 +37,7 @@ export const LoggingMiddleware = middleware(async (req, next) => {
 
   await logger.info("Request started", {
     method: callMeta?.method,
-    path: callMeta?.path,
+    path: callMeta?.pathAndQuery || callMeta?.path,
   });
 
   try {

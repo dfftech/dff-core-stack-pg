@@ -1,0 +1,28 @@
+meta {
+  name: Template File Save
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/template-file-save
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "otp-email_en-US",
+    "name": "otp-email",
+    "lang": "en-US",
+    "channel": "email",
+    "subject": "Your one-time password",
+    "template": "<div style=\"text-align:center;margin:0 0 24px\"><img src=\"{{#if data.logoUrl}}{{data.logoUrl}}{{else}}https://www.w3.org/Icons/w3c_home.png{{/if}}\" alt=\"Logo\" width=\"72\" height=\"48\" /></div><p>{{#if data.messageAbove}}{{data.messageAbove}}{{else}}Your one-time password is:{{/if}}</p><p style=\"text-align:center;font-size:32px;font-weight:700;letter-spacing:8px\">{{data.otp}}</p><p>{{#if data.messageBelow}}{{data.messageBelow}}{{else}}Do not share this code with anyone. It expires soon.{{/if}}</p>",
+    "active": true
+  }
+}

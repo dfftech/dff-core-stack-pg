@@ -1,0 +1,14 @@
+meta {
+  name: Template File Entity
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/template-file-entity/otp-email_en-US
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

@@ -22,12 +22,12 @@ CREATE INDEX IF NOT EXISTS app_settings_is_public_idx ON app_settings (is_public
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
 VALUES ('integration_smtp', 'integration', 'smtp', 'SMTP Settings', false,
-'{"host":"","port":587,"username":"","password":"","encryption":"tls","from_email":"","from_name":""}'::jsonb)
+'{"enabled":true,"service":"","host":"","port":587,"username":"","password":"","encryption":"tls","secure":false,"from_email":"","from_name":"","reply_to":""}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)
 VALUES ('integration_s3', 'integration', 's3', 'S3 Bucket Settings', false,
-'{"bucket":"","region":"","access_key":"","secret_key":"","base_url":"","folder":""}'::jsonb)
+'{"enabled":true,"bucket":"","region":"us-east-1","access_key":"","secret_key":"","endpoint":"","base_url":"","folder":"","expires":300,"acl":"public-read"}'::jsonb)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO app_settings (id, type, code, name, is_public, data)

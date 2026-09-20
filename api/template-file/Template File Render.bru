@@ -1,0 +1,29 @@
+meta {
+  name: Template File Render
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/template-file-render
+  body: json
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "templateId": "otp-email",
+    "lang": "en-US",
+    "data": {
+      "otp": "500827",
+      "logoUrl": "https://www.w3.org/Icons/w3c_home.png",
+      "messageAbove": "Your one-time password is:",
+      "messageBelow": "Do not share this code with anyone. It expires soon."
+    }
+  }
+}

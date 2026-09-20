@@ -1,0 +1,22 @@
+meta {
+  name: Template File Search
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/template-file-search
+}
+
+params:query {
+  limit: 10
+  skip: 0
+  searchTerm: otp
+  lang: en-US
+  active: true
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

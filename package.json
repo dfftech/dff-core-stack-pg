@@ -7,14 +7,16 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^20.5.7",
+    "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
     "typescript": "^5.2.2"
   },
   "dependencies": {
     "dff-util": "^1.4.3",
     "drizzle-orm": "^0.45.2",
-    "encore.dev": "^1.58.6",
+    "encore.dev": "^1.58.4",
     "kafkajs": "^2.2.4",
+    "nodemailer": "^10.0.10",
     "pg": "^8.23.0"
   },
   "scripts": {

@@ -1,6 +1,5 @@
 import { boolean, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/translation.sql — query only, no DDL. */
 export const translationEntity = pgTable("translation", {
   id: varchar("id", { length: 255 }).primaryKey(),
   type: varchar("type", { length: 100 }).notNull(),

@@ -7,7 +7,6 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/profiles.sql — query only, no DDL. */
 export const profileEntity = pgTable("profiles", {
   id: varchar("id", { length: 255 }).primaryKey(),
   created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

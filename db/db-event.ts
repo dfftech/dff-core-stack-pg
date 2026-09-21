@@ -1,7 +1,6 @@
 import { Client } from "pg";
 import { APP_SCHEMA, CORE_URL } from "./db-url";
 import { getCorePool, syncTenantPools } from "./db-pool";
-import { runConfigSqlForTenant } from "./config-sql";
 
 const CHANNEL = "tenant_change";
 const TRIGGER_NAME = "tenants_notify_trigger";
@@ -22,15 +21,6 @@ function safeNotifySummary(payload?: string): string {
     return JSON.stringify({ op: p.op, id: p.id, active: p.active });
   } catch {
     return "(unparsed)";
-  }
-}
-
-function parseTenantPayload(payload?: string): { op?: string; id?: string; active?: boolean } {
-  if (!payload) return {};
-  try {
-    return JSON.parse(payload) as { op?: string; id?: string; active?: boolean };
-  } catch {
-    return {};
   }
 }
 
@@ -120,20 +110,8 @@ async function startTenantChangeListener(): Promise<void> {
     if (msg.channel !== CHANNEL) return;
     console.log("[db-event] tenants table changed:", safeNotifySummary(msg.payload));
 
-    const change = parseTenantPayload(msg.payload);
-
-    void (async () => {
-      await syncTenantPools();
-
-      // config-sql only for the changed tenant — not every tenant
-      if (!change.id || change.op === "DELETE" || change.active === false) {
-        console.log("[db-event] skip config-sql (deleted or inactive tenant)");
-        return;
-      }
-
-      await runConfigSqlForTenant(change.id);
-    })().catch((err) => {
-      console.error("[db-event] tenant change sync/config-sql failed:", err);
+    void syncTenantPools().catch((err) => {
+      console.error("[db-event] tenant change sync failed:", err);
     });
   });
 

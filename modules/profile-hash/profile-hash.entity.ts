@@ -1,7 +1,6 @@
 import { pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { profileEntity } from "../profile/profile.entity";
 
-/** Mirrors config-sql/profile_hashes.sql — query only, no DDL. */
 export const profileHashEntity = pgTable("profile_hashes", {
   id: varchar("id", { length: 255 })
     .primaryKey()

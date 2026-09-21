@@ -1,6 +1,5 @@
 import { boolean, jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/query_loads.sql — query only, no DDL. */
 export const queryLoadEntity = pgTable("query_loads", {
   id: varchar("id", { length: 255 }).primaryKey(),
   query: text("query").notNull(),

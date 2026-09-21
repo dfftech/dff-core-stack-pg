@@ -1,6 +1,5 @@
 import { jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/query_reports.sql — query only, no DDL. */
 export const queryReportEntity = pgTable("query_reports", {
   id: varchar("id", { length: 255 }).primaryKey(),
   type: varchar("type", { length: 255 }).notNull(),

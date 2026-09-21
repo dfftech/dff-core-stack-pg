@@ -1,6 +1,5 @@
 import { boolean, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/otp_verifications.sql — query only, no DDL. */
 export const otpEntity = pgTable("otp_verifications", {
   id: varchar("id", { length: 255 }).primaryKey(),
   is_verified: boolean("is_verified").notNull(),

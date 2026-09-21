@@ -1,6 +1,5 @@
 import { integer, jsonb, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/query_lists.sql — query only, no DDL. */
 export const queryListEntity = pgTable("query_lists", {
   id: varchar("id", { length: 255 }).primaryKey(),
   col: jsonb("col").notNull().default({}).$type<unknown>(),

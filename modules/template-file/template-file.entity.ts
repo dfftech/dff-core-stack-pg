@@ -1,6 +1,5 @@
 import { boolean, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
-/** Mirrors config-sql/template_files.sql — query only, no DDL. */
 export const templateFileEntity = pgTable("template_files", {
   id: varchar("id", { length: 255 }).primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),

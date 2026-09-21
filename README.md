@@ -1,6 +1,6 @@
 # dff-core-stack-pg
 
-Encore.ts + Drizzle (PostgreSQL) core stack. Utils come from **dff-util** (`CallHbs`, `CallLangText`, `LangCountryCode`, mappers). SQL in `config-sql/` is **insert-only** (complete `CREATE TABLE`, no `UPDATE` / `ALTER TABLE` in seed files).
+Encore.ts + Drizzle (PostgreSQL) core stack. Utils come from **dff-util** (`CallHbs`, `CallLangText`, `LangCountryCode`, mappers).
 
 Typical headers: `Authorization: Bearer <jwt>`, `x-tenant-id: <tenant>`.
 
@@ -33,8 +33,6 @@ Health (`:id` is the tenant):
 ```sh
 curl -s http://localhost:4000/health/YOUR_TENANT_ID
 ```
-
-Seed order is `config-sql/order.yaml`.
 
 ---
 

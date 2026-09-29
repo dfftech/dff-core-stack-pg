@@ -1,7 +1,5 @@
 FROM oven/bun:1-slim AS encore-fetch
-# latest = GitHub encoredev/encore latest release.
 ARG ENCORE_CLI_VERSION=latest
-# Bust cached "latest" downloads: --build-arg ENCORE_CLI_CACHE=$(date +%s)
 ARG ENCORE_CLI_CACHE=0
 ENTRYPOINT []
 ENV DEBIAN_FRONTEND=noninteractive

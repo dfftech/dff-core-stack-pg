@@ -1,12 +1,11 @@
 import { toEntityMapper, toViewMapper } from 'dff-util';
-import type { Pool } from 'pg';
-import { session_db } from '../../../utils/app-util';
+import { sessionPool } from '../../query/query.helper';
 import { TABLES } from '../menu_groups.consts';
 import type { MenuGroupsData } from '../menu_groups.types';
 
 export class MenuGroupsPostgresService {
   static Pool() {
-    return session_db() as Pool;
+    return sessionPool();
   }
 
   async findById(id: string): Promise<MenuGroupsData | null> {

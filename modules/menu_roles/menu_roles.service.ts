@@ -1,126 +1,161 @@
-import { AppCode, AppCodeByType } from 'dff-util';
-import { db_type, logger, session_user } from '../../utils/app-util';
-import type { CreateMenuRoleDto, GetMenuRoleDto, SearchMenuRolesDto } from './menu_roles.dto';
-import type { MenuRolesData } from './menu_roles.types';
-import { MenuRolesMongoService } from './schemas/mongo.service';
-import { MenuRolesPostgresService } from './schemas/postgres.service';
-import MenuLinksService from '../menu_links/menu_links.service';
-import MenuAccessService from '../menu_access/menu_access.service';
+import { AppCodeByType, toViewMapper } from "dff-util";
+import { and, asc, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { logger, session_db, session_user } from "../../utils/app-util";
+import MenuAccessService from "../menu_access/menu_access.service";
+import MenuLinksService from "../menu_links/menu_links.service";
+import type { CreateMenuRoleDto, GetMenuRoleDto, SearchMenuRolesDto } from "./menu_roles.dto";
+import { menuRoleEntity, type MenuRoleEntity } from "./menu_roles.entity";
+import type { MenuRolesData } from "./menu_roles.types";
 
 export default class MenuRolesService {
-  static getMenuRolesDbService(): MenuRolesMongoService | MenuRolesPostgresService {
-    const dbType = db_type();
-    if (dbType === 'postgres') {
-      return new MenuRolesPostgresService();
-    } else if (dbType === 'mongo') {
-      return new MenuRolesMongoService();
-    } else {
-      throw new Error('Invalid database type');
+  static Db() {
+    return session_db();
+  }
+
+  static EntityService() {
+    return menuRoleEntity;
+  }
+
+  static AuditUpdate(entity: MenuRoleEntity, isNew: boolean): MenuRoleEntity {
+    const now = new Date();
+    const by = session_user()?.id ?? "System";
+    return {
+      ...entity,
+      updated_at: now,
+      updated_by: by,
+      ...(isNew ? { created_at: now, created_by: by } : {}),
+    };
+  }
+
+  static async FindById(id: string): Promise<MenuRolesData | null> {
+    const rows = await this.Db().select().from(menuRoleEntity).where(eq(menuRoleEntity.id, id)).limit(1);
+    return rows[0] ? (toViewMapper(rows[0]) as MenuRolesData) : null;
+  }
+
+  static Where(dto: SearchMenuRolesDto): SQL | undefined {
+    const table = menuRoleEntity;
+    const parts: SQL[] = [];
+    if (dto.searchTerm) {
+      const term = `%${dto.searchTerm}%`;
+      const match = or(ilike(table.name, term), sql`${table.name_lang}->>'en-US' ILIKE ${term}`);
+      if (match) parts.push(match);
     }
+    if (dto.persona !== undefined) parts.push(eq(table.persona, dto.persona));
+    if (dto.active !== undefined) parts.push(eq(table.active, dto.active));
+    return parts.length ? and(...parts) : undefined;
+  }
+
+  static async Query(dto: SearchMenuRolesDto): Promise<{ data: MenuRolesData[]; total: number }> {
+    const table = menuRoleEntity;
+    const where = this.Where(dto);
+    const limit = dto.limit || 10;
+    const skip = ((dto.page || 1) - 1) * limit;
+    const col = dto.orderBy === "name" ? table.name : table.updated_at;
+    const order = dto.order?.toUpperCase() === "ASC" ? asc(col) : desc(col);
+    const [rows, totalRow] = await Promise.all([
+      this.Db().select().from(table).where(where).orderBy(order).limit(limit).offset(skip),
+      this.Db().select({ value: count() }).from(table).where(where),
+    ]);
+    return {
+      data: rows.map((row) => toViewMapper(row) as MenuRolesData),
+      total: Number(totalRow[0]?.value ?? 0),
+    };
+  }
+
+  static async Upsert(data: {
+    id: string;
+    name: string;
+    nameLang: Record<string, string>;
+    persona: string;
+    active: boolean;
+  }): Promise<MenuRolesData> {
+    const existing =
+      (await this.Db().select().from(menuRoleEntity).where(eq(menuRoleEntity.id, data.id)).limit(1))[0] ?? null;
+    let entity = this.AuditUpdate(
+      {
+        ...(existing ?? {}),
+        id: data.id,
+        name: data.name,
+        name_lang: data.nameLang,
+        persona: data.persona,
+        active: data.active,
+      } as MenuRoleEntity,
+      !existing
+    );
+    if (existing) {
+      await this.Db().update(menuRoleEntity).set(entity).where(eq(menuRoleEntity.id, entity.id));
+    } else {
+      const [inserted] = await this.Db().insert(menuRoleEntity).values(entity).returning();
+      entity = inserted ?? entity;
+    }
+    return toViewMapper(entity) as MenuRolesData;
   }
 
   static async CreateMenuRoleService(dto: CreateMenuRoleDto): Promise<MenuRolesData> {
     const log = logger();
-    const user = session_user();
-    const dbService = this.getMenuRolesDbService();
-
-    log.info('Creating menu role', { name: dto.nameLang?.['en-US'] });
-
-    const menuRoleData = {
-      // id: dto.id || AppCode(dto.nameLang?.['en-US'] || dto.name || 'menu_role'),
-      id: dto.id || AppCodeByType(dto.nameLang?.['en-US'] || dto.name || 'menu_role', dto.persona as any),
-      name: dto.name || dto.nameLang?.['en-US'] || '',
+    const id = dto.id || AppCodeByType(dto.nameLang?.["en-US"] || dto.name || "menu_role", dto.persona);
+    log.info("Creating menu role", { name: dto.nameLang?.["en-US"] });
+    const existing = await this.FindById(id);
+    if (existing && !dto.id) throw new Error(`Menu role already exists with id ${id}`);
+    const saved = await this.Upsert({
+      id,
+      name: dto.name || dto.nameLang?.["en-US"] || "",
       nameLang: dto.nameLang,
       persona: dto.persona,
       active: dto.active !== undefined ? dto.active : true,
-    };
-
-    const existing = await dbService.findById(menuRoleData.id);
-
-    if (existing && !dto.id) {
-      throw new Error(`Menu role already exists with id ${menuRoleData.id}`);
-    }
-
-
-
-    const saved = await dbService.save(menuRoleData, user.id);
-    log.info('Menu role created', { id: saved.id });
-
+    });
+    log.info("Menu role created", { id: saved.id });
     try {
-      const linksDb = MenuLinksService.getMenuLinksDbService();
-      const links = await linksDb.search({
-        active: true,
-        orderBy: 'priority',
-        order: 'ASC',
-        persona: dto.persona,
-        page: 1,
-        limit: 10000,
-      });
+      const links = (
+        await MenuLinksService.Query({
+          active: true,
+          orderBy: "priority",
+          order: "ASC",
+          persona: dto.persona,
+          page: 1,
+          limit: 10000,
+        })
+      ).data;
       if (links.length > 0) {
         await MenuAccessService.BulkCreateMenuAccessService({
           menuRoleId: saved.id,
-          menuLinks: links.map((l: any) => ({
-            menuLinkId: l.id,
+          menuLinks: links.map((link) => ({
+            menuLinkId: link.id,
             read: false,
             create: false,
             update: false,
             delete: false,
           })),
         });
-        log.info('Default access entries created for new role', { roleId: saved.id, count: links.length });
-      } else {
-        log.info('No menu links found for persona; skipping default access creation', { roleId: saved.id });
+        log.info("Default access entries created for new role", { roleId: saved.id, count: links.length });
       }
-    } catch (e: any) {
-      log.error('Failed creating default access for new role', { roleId: saved.id, error: e?.message });
+    } catch (error) {
+      log.error("Failed creating default access for new role", { roleId: saved.id, error });
     }
-
     return saved;
   }
 
   static async GetMenuRoleService(dto: GetMenuRoleDto): Promise<MenuRolesData | null> {
     const log = logger();
-    const dbService = this.getMenuRolesDbService();
-
-    log.info('Getting menu role', { id: dto.id });
-
-    const menuRole = await dbService.findById(dto.id);
-
-    if (!menuRole) {
-      log.warn('Menu role not found', { id: dto.id });
-      return null;
-    }
-
+    log.info("Getting menu role", { id: dto.id });
+    const menuRole = await this.FindById(dto.id);
+    if (!menuRole) log.warn("Menu role not found", { id: dto.id });
     return menuRole;
   }
 
-
-
-  static async SearchMenuRolesService(dto: SearchMenuRolesDto): Promise<{ data: MenuRolesData[]; total: number }> {
+  static async SearchMenuRolesService(dto: SearchMenuRolesDto) {
     const log = logger();
-    const dbService = this.getMenuRolesDbService();
-
-    log.info('Searching menu roles', { searchTerm: dto.searchTerm });
-
-    const [data, total] = await Promise.all([dbService.search(dto), dbService.count(dto)]);
-
-    return { data, total };
+    log.info("Searching menu roles", { searchTerm: dto.searchTerm });
+    return this.Query(dto);
   }
 
   static async DeleteMenuRoleService(id: string): Promise<boolean> {
     const log = logger();
-    const dbService = this.getMenuRolesDbService();
-
-    log.info('Deleting menu role', { id });
-
-    const deleted = await dbService.deleteById(id);
-
-    if (deleted) {
-      log.info('Menu role deleted successfully', { id });
-    } else {
-      log.warn('Menu role not found for deletion', { id });
-    }
-
+    log.info("Deleting menu role", { id });
+    const result = await this.Db().delete(menuRoleEntity).where(eq(menuRoleEntity.id, id));
+    const deleted = (result.rowCount ?? 0) > 0;
+    if (deleted) log.info("Menu role deleted successfully", { id });
+    else log.warn("Menu role not found for deletion", { id });
     return deleted;
   }
 }

@@ -1,0 +1,39 @@
+meta {
+  name: Menu Access Bulk Create
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/menu-access-bulk-create
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "menuRoleId": "ADMIN",
+    "menuLinks": [
+      {
+        "menuLinkId": "DASHBOARD",
+        "read": true,
+        "create": true,
+        "update": true,
+        "delete": false
+      },
+      {
+        "menuLinkId": "PROFILES",
+        "read": true,
+        "create": false,
+        "update": false,
+        "delete": false
+      }
+    ]
+  }
+}

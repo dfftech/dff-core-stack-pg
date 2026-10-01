@@ -1,0 +1,28 @@
+meta {
+  name: Menu Access Search
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/menu-access-search
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "menuRoleId": "ADMIN",
+    "persona": "admin",
+    "page": 1,
+    "limit": 10,
+    "orderBy": "updated_at",
+    "order": "DESC"
+  }
+}

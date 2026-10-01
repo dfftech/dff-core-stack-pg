@@ -1,0 +1,23 @@
+meta {
+  name: Menu Group Get
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/menu-groups-get
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "ADMINISTRATOR"
+  }
+}

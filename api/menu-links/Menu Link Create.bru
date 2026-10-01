@@ -1,0 +1,30 @@
+meta {
+  name: Menu Link Create
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/menu-links-create
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "href": "/dashboard",
+    "icon": "layout-dashboard",
+    "menuGroupId": "ADMINISTRATOR",
+    "name": "Dashboard",
+    "nameLang": { "en-US": "Dashboard" },
+    "priority": 1,
+    "persona": "admin",
+    "active": true
+  }
+}

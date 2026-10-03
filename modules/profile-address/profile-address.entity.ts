@@ -2,7 +2,7 @@ import { pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 import { addressEntity } from "../address/address.entity";
 import { profileEntity } from "../profile/profile.entity";
 
-export const profileAddressEntity = pgTable("profile_address", {
+export const profileAddressEntity = pgTable("profile_addresses", {
   id: varchar("id", { length: 255 }).primaryKey(),
   profile_id: varchar("profile_id", { length: 255 })
     .notNull()

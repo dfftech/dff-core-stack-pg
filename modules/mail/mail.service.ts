@@ -1,7 +1,7 @@
 import { CallHbs } from "dff-util";
 import type { RequestBodyType, ResponseType } from "../../utils/app-types";
 import { logger } from "../../utils/app-util";
-import TemplateFileService from "../template-file/template-file.service";
+import TemplateService from "../template/template.service";
 import type { MailSendDto } from "./mail.dto";
 import { MailHelper } from "./mail.helper";
 
@@ -13,13 +13,13 @@ export default class MailService {
         return { data: null, error: "INVALID_DATA" };
       }
 
-      const row = await TemplateFileService.FindByNameLangService(
+      const row = await TemplateService.FindByNameLangService(
         input.templateId,
         input.lang
       );
-      if (!row?.template) return { data: null, error: "INVALID_DATA" };
+      if (!row?.content) return { data: null, error: "INVALID_DATA" };
 
-      const html = await CallHbs(row.template, { data: input.data ?? {} } as RequestBodyType);
+      const html = await CallHbs(row.content, { data: input.data ?? {} } as RequestBodyType);
       const rendered = Array.isArray(html) ? html.join("") : String(html);
       let subject = (input.subject || row.subject || "").trim();
       if (subject.includes("{{")) {

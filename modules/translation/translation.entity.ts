@@ -1,6 +1,6 @@
 import { boolean, jsonb, pgTable, timestamp, varchar } from "drizzle-orm/pg-core";
 
-export const translationEntity = pgTable("translation", {
+export const translationEntity = pgTable("translations", {
   id: varchar("id", { length: 255 }).primaryKey(),
   type: varchar("type", { length: 100 }).notNull(),
   key: varchar("key", { length: 255 }).notNull(),

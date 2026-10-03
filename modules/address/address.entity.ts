@@ -1,6 +1,6 @@
 import { doublePrecision, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
 
-export const addressEntity = pgTable("address", {
+export const addressEntity = pgTable("addresses", {
   id: varchar("id", { length: 255 }).primaryKey(),
   address: text("address").notNull(),
   area: varchar("area", { length: 255 }),

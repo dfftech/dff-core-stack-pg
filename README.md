@@ -75,7 +75,7 @@ If `bucket` + `access_key` + `secret_key` are set, URLs are AWS SigV4. Otherwise
 | `CONSTANT_PRIVATE` | auth | `app_constants` | `type`, `active` |
 | `SETTING_PUBLIC` | public | `app_settings` | `type`, `active` (and `is_public = true`) |
 | `SETTING_PRIVATE` | auth | `app_settings` | `type`, `active` (and `is_public = false`) |
-| `LANG` | public | `lang` | — |
+| `LANG` | public | `locales` | — |
 | `ROLE` | auth | `menu_roles` | — |
 | `PROFILE` | auth | `profiles` | `persona`, `active` |
 
@@ -90,25 +90,40 @@ GET /query-load/PROFILE?persona=admin&active=true
 GET /query-load/LANG
 ```
 
-Also: `GET /query-report/:id`, `GET /query-list/:id`.
+Also: `GET /query-report/:id`, `GET /query-list/:id`. Each is its own module (`query-load`, `query-list`, `query-report`) with tables `query_loads`, `query_lists`, `query_reports`.
 
 ---
 
-## Lang
+## Locale
 
-Table `lang`. Save `{ "id": "en-US" }` and `LangCountryCode` fills name, country, dir, locale.
+Table `locales`. Save `{ "id": "en-US" }` and `LangCountryCode` fills name, country, dir, locale.
 
-- `POST /lang-save`
-- `POST /lang-search`
-- `GET /lang-entity/:id`
+- `POST /locale-save`
+- `POST /locale-search`
+- `GET /locale-entity/:id`
 
 Seeded locales include `en-US`, `en-CA`, `ar-SA`, `hi-IN`. Any locale known to dff-util can be saved.
 
 ---
 
+## Site content
+
+Table `site_contents` (privacy policy, terms, about us, etc.). Content is **Markdown only**: `content` is a `TEXT` column holding the Markdown string (put the title in a `# Heading`). HTML tags are rejected with `INVALID_SITE_CONTENT_MARKDOWN`.
+
+`type` is a free-form string (trimmed and upper-cased, max 64 characters), for example `PRIVACY_POLICIES`, `TERMS_CONDITIONS`, `ABOUT_US`, `DISCLAIMERS`, `RETURNS_REFUNDS_POLICY`, `CONTACT_US`. Each row is unique per `type` + `version` + `lang` (`lang` defaults to `en-US`). Default id is `{TYPE}_{VERSION}_{LANG}`, for example `PRIVACY_POLICIES_1_0_EN_US`.
+
+- `POST /site-content-save`
+- `POST /site-content-search` (active only; optional `lang`, `searchTerm`)
+- `GET /site-content-entity/:id`
+- `GET /site-content-get/:type` (for example `/site-content-get/PRIVACY_POLICIES`) returns the latest active version of that type (versions compared numerically, so `1.10` is newer than `1.9`). `lang` is an optional query param and defaults to `en-US`; if there is no row for the requested `lang`, it falls back to `en-US`. No active row for the type returns `data: null`.
+
+Seeded in migrations `0000` and `core-0000` (`en-US`, version `1.0`).
+
+---
+
 ## Translation
 
-Table `translation`: one row per **type + key**. `id` is `{type}_{key}` (e.g. `auth_signIn`). `key` must not contain `.`. `type` is free (user-defined: `app`, `auth`, `setting`, `common`, …). `data` is a language map:
+Table `translations`: one row per **type + key**. `id` is `{type}_{key}` (e.g. `auth_signIn`). `key` must not contain `.`. `type` is free (user-defined: `app`, `auth`, `setting`, `common`, …). `data` is a language map:
 
 ```json
 {
@@ -142,16 +157,16 @@ Pass `{ "lang": "en-US" }` to return only that locale.
 
 ---
 
-## Template files and mail
+## Templates and mail
 
-Table `template_files`: one row per **name + lang**. Render uses `CallHbs` with `{ data: payload }`. Lookup: id → `{name}_{lang}` → `{name}_en-US`.
+Table `templates`: one row per **name + lang**. Render uses `CallHbs` with `{ data: payload }`. Lookup: id → `{name}_{lang}` → `{name}_en-US`.
 
 | Method | Path |
 | --- | --- |
-| POST | `/template-file-save` |
-| GET | `/template-file-search` |
-| GET | `/template-file-entity/:id` |
-| POST | `/template-file-render` `{ templateId, lang?, data }` |
+| POST | `/template-save` |
+| POST | `/template-search` |
+| GET | `/template-entity/:id` |
+| POST | `/template-render` `{ templateId, lang?, data }` |
 | POST | `/mail-send` `{ templateId, lang?, data, to, subject?, attachments }` |
 
 Seeded templates:
@@ -193,7 +208,7 @@ Mail is sent when `userid` is an email. Mail errors are logged and do not fail t
 
 Also: `POST /auth-save`, `POST /auth-search`, `GET /auth-entity/:id`.
 
-OTP CRUD: `POST /otp-save`, `POST /otp-search`, `GET /otp-entity/:id` (table `otp_verifications`).
+OTP CRUD: `POST /otp-verification-save`, `POST /otp-verification-search`, `GET /otp-verification-entity/:id` (table `otp_verifications`).
 
 ---
 
@@ -215,4 +230,4 @@ Object key: `{folder}/{name}-{uuid}{ext}` (folder often `local`).
 
 Collections in `api/` (`{{baseUrl}}`, `{{token}}`, `{{xTenantId}}`):
 
-`api/auth/`, `api/app-setting/`, `api/lang/`, `api/translation/`, `api/template-file/`, `api/mail/`, `api/sss/`, `api/otp/`, `api/query/`, `api/profile/`, `api/profile-hash/`.
+`api/auth/`, `api/app-setting/`, `api/locale/`, `api/translation/`, `api/template/`, `api/mail/`, `api/sss/`, `api/otp-verification/`, `api/query-load/`, `api/query-list/`, `api/query-report/`, `api/profile/`, `api/profile-hash/`, `api/profile-address/`, `api/address/`, `api/enquiry/`, `api/site-content/`, `api/menu-access/`, `api/menu-group/`, `api/menu-link/`, `api/menu-role/`, `api/health/`.

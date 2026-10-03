@@ -1,0 +1,18 @@
+meta {
+  name: Site Content Get
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/site-content-get/PRIVACY_POLICIES
+}
+
+params:query {
+  ~lang: en-US
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

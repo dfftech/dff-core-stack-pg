@@ -1,0 +1,14 @@
+meta {
+  name: Locale Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/locale-entity/en-US
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

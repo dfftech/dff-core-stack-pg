@@ -46,7 +46,7 @@ export const saveUser = api(...)      // camelCase
 
 API Paths
 
-All paths must use kebab-case only (no underscores): **xxx-yyy-zzz**. For paths with a param use **xxx-yyy/:param** (e.g. lang-entity/:id, loader/:id).
+All paths must use kebab-case only (no underscores): **xxx-yyy-zzz**. For paths with a param use **xxx-yyy/:param** (e.g. locale-entity/:id, loader/:id).
 
 // CORRECT
 path: "/user-save"
@@ -267,7 +267,7 @@ Rule No | Summary
 9       | Use logger() instead of console.log
 10      | Use app-util for DB and session utilities
 11      | Drizzle entities are for queries/types only — do NOT use to alter tables; schema changes via SQL/migrations only
-12      | API paths: kebab-case only (xxx-yyy-zzz); with param use xxx-yyy/:param (e.g. lang-entity/:id)
+12      | API paths: kebab-case only (xxx-yyy-zzz); with param use xxx-yyy/:param (e.g. locale-entity/:id)
 
 ---
 ## REST Files (.rest)

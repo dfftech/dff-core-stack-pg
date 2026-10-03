@@ -1,0 +1,28 @@
+meta {
+  name: Menu Group Save
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/menu-group-save
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "icon": "layout-dashboard",
+    "name": "Administrator",
+    "nameLang": { "en-US": "Administrator" },
+    "priority": 1,
+    "persona": "admin",
+    "active": true
+  }
+}

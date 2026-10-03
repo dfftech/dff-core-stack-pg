@@ -1,0 +1,29 @@
+meta {
+  name: Menu Access Save
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/menu-access-save
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "menuRoleId": "ADMIN",
+    "menuLinkId": "DASHBOARD",
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": false,
+    "persona": "admin"
+  }
+}

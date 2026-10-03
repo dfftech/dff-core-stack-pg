@@ -1,4 +1,4 @@
-# util-ms port: mail, sss URL, template_files
+# util-ms port: mail, sss URL, templates
 
 Port of send-mail, S3 signed upload URL, and templates from `util-ms` into this Encore + Drizzle app.
 
@@ -22,7 +22,7 @@ S3 `data`: `enabled`, `bucket`, `region`, `access_key`, `secret_key`, `endpoint`
 
 ## Templates (language-based)
 
-Table `template_files`: one row per **name + lang** (`lang.id`, default `en-US`).
+Table `templates`: one row per **name + lang** (`lang.id`, default `en-US`).
 
 | Column | Purpose |
 | --- | --- |
@@ -31,7 +31,7 @@ Table `template_files`: one row per **name + lang** (`lang.id`, default `en-US`)
 | `lang` | Locale e.g. `en-US` |
 | `channel` | `email` or `sms` |
 | `subject` | Email subject (may include `{{data.otp}}`) |
-| `template` | Handlebars source |
+| `content` | Handlebars source |
 
 Render passes `{ data: <payload> }` into `CallHbs`. Lookup: exact id → `{name}_{lang}` → `{name}_en-US`.
 
@@ -71,12 +71,12 @@ Passing only `{ "otp": "500827" }` works for OTP mails (defaults from the en-US 
 
 Headers: `Authorization: Bearer <jwt>`, `x-tenant-id: <tenant>` (when multi-tenant).
 
-### template-file
+### template
 
-- `POST /template-file-save` `{ id?, name, lang?, channel?, subject?, template, active? }`
-- `GET /template-file-search` `limit`, `skip`, `searchTerm`, `lang`, `active`
-- `GET /template-file-entity/:id`
-- `POST /template-file-render` `{ templateId, lang?, data }`
+- `POST /template-save` `{ id?, name, lang?, channel?, subject?, template, active? }`
+- `POST /template-search` body `{ limit, skip, searchTerm, lang, active }`
+- `GET /template-entity/:id`
+- `POST /template-render` `{ templateId, lang?, data }`
 
 ### mail
 
@@ -97,4 +97,4 @@ The **auth** module sends mail when `userid` is an email:
 
 ## Bruno
 
-`api/template-file/`, `api/mail/`, `api/sss/` using `{{baseUrl}}`, `{{token}}`, `{{xTenantId}}`.
+`api/template/`, `api/mail/`, `api/sss/` using `{{baseUrl}}`, `{{token}}`, `{{xTenantId}}`.

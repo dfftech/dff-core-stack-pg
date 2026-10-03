@@ -1,0 +1,14 @@
+meta {
+  name: Enquiry Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/enquiry-entity/SUPPORT
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

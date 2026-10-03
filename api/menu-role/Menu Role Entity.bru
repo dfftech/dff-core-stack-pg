@@ -1,0 +1,14 @@
+meta {
+  name: Menu Role Entity
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/menu-role-entity/ADMIN
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

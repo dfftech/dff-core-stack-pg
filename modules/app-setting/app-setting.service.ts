@@ -25,6 +25,10 @@ export default class AppSettingService {
     } as AppSettingEntity;
   }
 
+  static ToView(entity: AppSettingEntity) {
+    return { ...toViewMapper(entity), data: entity.data };
+  }
+
   static async EntityByIdService(id: string): Promise<ResponseType> {
     const rows = await this.Db()
       .select()
@@ -33,7 +37,7 @@ export default class AppSettingService {
       .limit(1);
     const entity = rows[0];
     if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    return { data: this.ToView(entity) };
   }
 
   static async DataByIdService(id: string): Promise<Record<string, unknown>> {
@@ -64,13 +68,16 @@ export default class AppSettingService {
       if (invalid) return { data: null, error: invalid };
 
       const id = dto.id || `${dto.type}_${dto.code}`;
-      let entity = toEntityMapper({
-        ...dto,
-        id,
-        active: dto.active ?? true,
-        isPublic: dto.isPublic ?? false,
-        data: dto.data ?? {},
-      }) as AppSettingEntity;
+      const { data: settingData, ...rest } = dto;
+      let entity = {
+        ...(toEntityMapper({
+          ...rest,
+          id,
+          active: dto.active ?? true,
+          isPublic: dto.isPublic ?? false,
+        }) as AppSettingEntity),
+        data: (settingData ?? {}) as Record<string, unknown>,
+      } as AppSettingEntity;
 
       const existing = (
         await this.Db().select().from(appSettingEntity).where(eq(appSettingEntity.id, id)).limit(1)
@@ -84,7 +91,7 @@ export default class AppSettingService {
         entity = inserted ?? entity;
       }
       log.info(`Saved app setting: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return { data: this.ToView(entity), status: "SAVED_SUCCESSFULLY" };
     } catch (error) {
       log.error(`Failed to save app setting: ${error}`);
       throw error;
@@ -132,7 +139,7 @@ export default class AppSettingService {
       db.select({ value: count() }).from(table).where(where),
     ]);
     return {
-      data: rows.map((r: Record<string, unknown>) => toViewMapper(r)),
+      data: rows.map((r: AppSettingEntity) => this.ToView(r)),
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,

@@ -1,0 +1,29 @@
+meta {
+  name: Menu Role Search
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/menu-role-search
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "searchTerm": "admin",
+    "persona": "admin",
+    "active": true,
+    "page": 1,
+    "limit": 10,
+    "orderBy": "updated_at",
+    "order": "DESC"
+  }
+}

@@ -12,7 +12,7 @@ import { env, logger, session_user } from "../../utils/app-util";
 import ProfileHashService from "../profile-hash/profile-hash.service";
 import ProfileService from "../profile/profile.service";
 import { profileEntity } from "../profile/profile.entity";
-import OtpService from "../otp/otp.service";
+import OtpVerificationService from "../otp-verification/otp-verification.service";
 import MailService from "../mail/mail.service";
 import AppSettingService from "../app-setting/app-setting.service";
 import { settingText } from "../../utils/app-settings";
@@ -192,7 +192,7 @@ export default class AuthService {
     _name?: string,
     options?: { lang?: string; templateId?: string }
   ) {
-    const otpRes = await OtpService.CreateOtpService({ uid });
+    const otpRes = await OtpVerificationService.CreateOtpService({ uid });
     if (otpRes?.otp) {
       await this.SendAuthMail(uid, options?.templateId || "otp-email", options?.lang, {
         otp: otpRes.otp,
@@ -212,7 +212,7 @@ export default class AuthService {
   }
 
   static async ResetPasswordService(dto: ResetPasswordDto) {
-    const otpRecord = await OtpService.GetOtpService(dto.otpId);
+    const otpRecord = await OtpVerificationService.GetOtpService(dto.otpId);
     if (!otpRecord || !otpRecord.is_verified) throw new Error(AuthProps.REVERIFY_OTP);
 
     const profile = await this.FindProfileByUserid(dto.userid);
@@ -228,7 +228,7 @@ export default class AuthService {
   }
 
   static async VerifyAccountService(dto: VerifyAccountDto) {
-    const otpRecord = await OtpService.GetOtpService(dto.otpId);
+    const otpRecord = await OtpVerificationService.GetOtpService(dto.otpId);
     if (!otpRecord || !otpRecord.is_verified) throw new Error(AuthProps.REVERIFY_OTP);
 
     const profile = await this.FindProfileByUserid(dto.userid);
@@ -249,7 +249,7 @@ export default class AuthService {
   }
 
   static async VerifyOtpService(dto: VerificationOtpDto) {
-    const verifyResult = await OtpService.VerifyOtpService({
+    const verifyResult = await OtpVerificationService.VerifyOtpService({
       id: dto.otpId,
       uid: dto.uid,
       otp: dto.otp,

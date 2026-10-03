@@ -354,7 +354,7 @@ export default class AuthService {
   static async AccountDeleteService(userid: string) {
     const currentUser = session_user();
     const roles: string[] = currentUser?.roles || [];
-    const isAdmin = ["admin", "SUPER_ADMIN", "ADMIN"].some((r) => roles.includes(r));
+    const isAdmin = ["DEALER_ADMIN", "SUPER_ADMIN", "ADMIN_ADMIN", "TRADER_ADMIN", "RETAILER_ADMIN", "TENANT_ADMIN"].some((r) => roles.includes(r));
     if (!isAdmin && currentUser?.id !== userid) throw { message: ConstKeys.UNAUTHORIZED };
 
     const profile = await this.FindProfileByUserid(userid);

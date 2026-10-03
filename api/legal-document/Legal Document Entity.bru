@@ -1,0 +1,14 @@
+meta {
+  name: Legal Document Entity
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/legal-document-entity/PRIVACY_POLICY_1_0
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

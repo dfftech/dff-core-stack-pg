@@ -1,0 +1,29 @@
+meta {
+  name: Contact Us Save
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/contact-us-save
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": "SUPPORT",
+    "name": "Support",
+    "email": "support@example.com",
+    "phone": "+1 555 010 0000",
+    "summary": "Reach out to us for any queries.",
+    "fileUrl": "https://example.com/contact-us.pdf",
+    "active": true
+  }
+}

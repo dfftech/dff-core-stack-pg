@@ -1,0 +1,14 @@
+meta {
+  name: Legal Document Get
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/legal-document-get
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

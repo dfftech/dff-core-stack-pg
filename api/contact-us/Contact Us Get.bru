@@ -1,0 +1,14 @@
+meta {
+  name: Contact Us Get
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/contact-us-get
+}
+
+headers {
+  Authorization: Bearer {{token}}
+  x-tenant-id: {{xTenantId}}
+}

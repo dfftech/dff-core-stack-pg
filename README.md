@@ -50,7 +50,7 @@ CRUD:
 | --- | --- |
 | `integration_smtp` | `POST /mail-send` (nodemailer) |
 | `integration_s3_public` | `GET /sss-url?fileName=` |
-| `integration_s3_private` | `GET /sss-url?fileName=&private=true` |
+| `integration_s3_private` | `GET /sss-url?fileName=&private=true&type=` (optional type → kebab-case folder) |
 | `branding_company` | Auth emails (`logo_url`, app/company name) |
 
 ### SMTP (`integration_smtp` `data`)
@@ -200,7 +200,7 @@ OTP CRUD: `POST /otp-save`, `POST /otp-search`, `GET /otp-entity/:id` (table `ot
 ## S3 / SSS
 
 `GET /sss-url?fileName=jwt.png` — public (`integration_s3_public`).  
-`GET /sss-url?fileName=jwt.png&private=true` — private (`integration_s3_private`).
+`GET /sss-url?fileName=jwt.png&private=true&type=Profile Photos` — private (`integration_s3_private`), key `{folder}/profile-photos/jwt-{uuid}.png`. `type` is optional; when empty the folder is `assets`.
 
 | | Public | Private |
 | --- | --- | --- |

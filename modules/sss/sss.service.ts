@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { toKebabCase } from "dff-util";
 import type { ResponseType } from "../../utils/app-types";
 import { logger } from "../../utils/app-util";
 import {
@@ -11,6 +12,8 @@ import AppSettingService from "../app-setting/app-setting.service";
 import { sssPrivateFiles, sssPublicFiles } from "./sss.bucket";
 import type { SssUrlRequest } from "./sss.dto";
 import { PublicS3Url, SignS3Url, type S3SignConfig } from "./sss.helper";
+
+const DEFAULT_TYPE_FOLDER = "assets";
 
 export default class SssService {
   static UniqueKey(fileName: string, folder: string): string {
@@ -62,10 +65,15 @@ export default class SssService {
     try {
       const fileName = String(input.fileName || "").trim();
       if (!fileName) return { data: null, error: "INVALID_DATA" };
+      const type = String(input.type ?? "").trim();
+      const typeFolder = (type && toKebabCase(type)) || DEFAULT_TYPE_FOLDER;
       const isPrivate = input.private === true;
       const s3 = await AppSettingService.DataByIdService(this.SettingId(isPrivate));
       if (s3.enabled === false) return { data: null, error: "S3_NOT_CONFIGURED" };
-      const folder = settingText(s3, "folder");
+      const folder = [settingText(s3, "folder"), typeFolder]
+        .map((p) => p.replace(/^\/+|\/+$/g, ""))
+        .filter(Boolean)
+        .join("/");
       const baseUrl = settingText(s3, "base_url").replace(/\/+$/, "");
       const ttl = settingNumber(s3, "expires", 300);
       const key = this.UniqueKey(fileName, folder);

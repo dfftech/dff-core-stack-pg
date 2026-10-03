@@ -24,14 +24,23 @@ export function get_core_db() {
     : drizzle({ client: getCorePool() });
 }
 
-/** Drizzle for a tenant pool (multi-tenant only). */
+/** Reserved tenant id: always served by the base DB (DB_URL); tenants table is not read. */
+export const CORE_TENANT_ID = "core";
+
+export function is_core_tenant(tenantId?: string): boolean {
+  return String(tenantId ?? "").trim().toLowerCase() === CORE_TENANT_ID;
+}
+
+/** Drizzle for a tenant pool (multi-tenant only). "core" → base DB, no registry lookup. */
 export async function get_tenant_db(tenantId: string) {
+  if (is_core_tenant(tenantId)) return get_core_db();
   const pool = await getOrCreateTenantPool(tenantId);
   return drizzle({ client: pool });
 }
 
-/** Raw pg Pool for a tenant (multi-tenant only). */
+/** Raw pg Pool for a tenant (multi-tenant only). "core" → base DB, no registry lookup. */
 export async function get_tenant_pool(tenantId: string) {
+  if (is_core_tenant(tenantId)) return getCorePool();
   return getOrCreateTenantPool(tenantId);
 }
 

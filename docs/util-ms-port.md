@@ -12,7 +12,7 @@ Do **not** hardcode SMTP/S3 secrets. Mail and sss read:
 | --- | --- |
 | `integration_smtp` | `POST /mail-send` (nodemailer) |
 | `integration_s3_public` | `GET /sss-url?fileName=` public upload + download |
-| `integration_s3_private` | `GET /sss-url?fileName=&private=true` signed upload + download |
+| `integration_s3_private` | `GET /sss-url?fileName=&private=true&type=` signed upload + download (optional type → kebab-case folder) |
 
 Fill rows in `app_settings` (query-load `SETTING_SMTP` / `SETTING_S3_PUBLIC` / `SETTING_S3_PRIVATE`). Env `CORE_MAIL_*` is only a fallback if SMTP username/password are empty.
 
@@ -93,7 +93,7 @@ The **auth** module sends mail when `userid` is an email:
 
 ### sss
 
-`GET /sss-url?fileName=` — public (`integration_s3_public`). `GET /sss-url?fileName=&private=true` — private (`integration_s3_private`). Public download is `base_url` or Encore `publicUrl`. Private download is a signed GET. Key is `{folder}/{name}-{uuid}{ext}`.
+`GET /sss-url?fileName=` — public (`integration_s3_public`). `GET /sss-url?fileName=&private=true&type=Profile Photos` — private (`integration_s3_private`); optional `type` is converted with `toKebabCase` (dff-util) and added as a folder. Empty `type` → `assets` folder. Public/private is decided only by `private`. Public download is `base_url` or Encore `publicUrl`. Private download is a signed GET. Key is `{setting folder}/{kebab-type}/{name}-{uuid}{ext}`.
 
 ## Bruno
 

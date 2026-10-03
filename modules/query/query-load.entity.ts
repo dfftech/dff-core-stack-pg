@@ -8,9 +8,9 @@ export const queryLoadEntity = pgTable("query_loads", {
   isPublic: boolean("is_public").notNull().default(false),
   isData: boolean("is_data").notNull().default(false),
   createdBy: varchar("created_by", { length: 127 }).notNull().default("System"),
-  createdOn: timestamp("created_on", { withTimezone: true }).notNull().defaultNow(),
+  createdOn: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedBy: varchar("updated_by", { length: 127 }).notNull().default("System"),
-  updatedOn: timestamp("updated_on", { withTimezone: true }).defaultNow(),
+  updatedOn: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export type QueryLoadEntity = typeof queryLoadEntity.$inferSelect;

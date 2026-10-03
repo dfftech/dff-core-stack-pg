@@ -162,6 +162,11 @@ export async function syncTenantPools(): Promise<void> {
     throw err;
   }
 
+  // "core" is reserved: always served by the base DB (DB_URL), never pooled from the registry.
+  for (const id of Object.keys(nextMap)) {
+    if (id.trim().toLowerCase() === "core") delete nextMap[id];
+  }
+
   const nextIds = new Set(Object.keys(nextMap));
 
   for (const tenantId of Array.from(tenantPools.keys())) {

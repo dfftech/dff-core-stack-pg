@@ -1,0 +1,33 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Otp Verification Save
+POST {{hosturl}}/otp-verification-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "uid": "admin@admin.com",
+  "otp": "500827",
+  "isVerified": false
+}
+
+### 2. Otp Verification Search
+POST {{hosturl}}/otp-verification-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "prasad.sg@dff-software.com",
+  "limit": 10,
+  "skip": 0
+}
+
+### 3. Otp Verification Entity
+GET {{hosturl}}/otp-verification-entity/OTP_ID
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

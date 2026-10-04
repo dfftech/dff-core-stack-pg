@@ -1,0 +1,154 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Translation Save
+POST {{hosturl}}/translation-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "app",
+  "key": "name",
+  "data": {
+    "en-US": "YourAppName",
+    "en-CA": "YourAppName",
+    "hi-IN": "आपका ऐप"
+  },
+  "active": true
+}
+
+### 2. Translation Search Type
+POST {{hosturl}}/translation-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "common,auth",
+  "limit": 50,
+  "skip": 0
+}
+
+### 3. Translation Entity
+GET {{hosturl}}/translation-entity/app_name
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 4. Translation Text
+POST {{hosturl}}/translation-text
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "text": "Your password was reset successfully",
+  "source": "en-US",
+  "target": "hi-IN"
+}
+
+### 5. Translation Map
+GET {{hosturl}}/translation-map/en-US
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 6. Translation Fill
+POST {{hosturl}}/translation-fill
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "lang": "ar-SA",
+  "source": "en-US"
+}
+
+### 7. Translation Save Auto
+POST {{hosturl}}/translation-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "auth",
+  "key": "sendOtp",
+  "data": {
+    "en-US": "Send OTP"
+  }
+}
+
+### 8. Translation Search Lang
+POST {{hosturl}}/translation-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "lang": "en-US",
+  "limit": 50,
+  "skip": 0
+}
+
+### 9. Translation Search Type Lang
+POST {{hosturl}}/translation-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "auth",
+  "lang": "en-US",
+  "limit": 50,
+  "skip": 0
+}
+
+### 10. Translation Data Type
+POST {{hosturl}}/translation-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "common,auth"
+}
+
+### 11. Translation Data Lang
+POST {{hosturl}}/translation-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "lang": "en-US"
+}
+
+### 12. Translation Data Type Lang
+POST {{hosturl}}/translation-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "auth",
+  "lang": "en-US"
+}
+
+### 13. Translation Lang
+POST {{hosturl}}/translation-lang
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{}
+
+### 14. Translation Lang en-US
+POST {{hosturl}}/translation-lang
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "lang": "hi-IN"
+}

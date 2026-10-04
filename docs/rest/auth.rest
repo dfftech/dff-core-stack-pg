@@ -1,7 +1,7 @@
 # Environment
 @hosturl = http://localhost:4000
 @authToken =
-@xTenantId = TEST
+@xTenantId = local
 
 ### 1. Signin
 POST {{hosturl}}/auth-signin

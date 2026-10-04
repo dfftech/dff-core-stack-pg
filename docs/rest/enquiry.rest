@@ -1,0 +1,42 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Enquiry Save
+POST {{hosturl}}/enquiry-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "SUPPORT",
+  "name": "Support",
+  "email": "support@example.com",
+  "phone": "+1 555 010 0000",
+  "summary": "Reach out to us for any queries.",
+  "fileUrl": "https://example.com/enquiry.pdf",
+  "active": true
+}
+
+### 2. Enquiry Search
+POST {{hosturl}}/enquiry-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "",
+  "limit": 10,
+  "skip": 0
+}
+
+### 3. Enquiry Entity
+GET {{hosturl}}/enquiry-entity/SUPPORT
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 4. Enquiry Get
+GET {{hosturl}}/enquiry-get
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

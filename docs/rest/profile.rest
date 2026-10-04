@@ -1,0 +1,42 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Profile Save
+POST {{hosturl}}/profile-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "ADMIN_ADMIN",
+  "name": "Admin User",
+  "nameLang": { "en-US": "admin" },
+  "email": "admin@admin.com",
+  "mobile": "0000000001",
+  "telCode": "91",
+  "persona": "admin",
+  "roles": ["ADMIN_ADMIN"],
+  "active": true,
+  "provider": "password",
+  "password": "YWRtaW4="
+}
+
+### 2. Profile Search
+POST {{hosturl}}/profile-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "admin",
+  "limit": 10,
+  "skip": 0,
+  "filters": "{\"persona\":\"admin\"}"
+}
+
+### 3. Profile Entity
+GET {{hosturl}}/profile-entity/ADMIN_ADMIN
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

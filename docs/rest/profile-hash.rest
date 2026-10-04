@@ -1,0 +1,33 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Profile Hash Save
+POST {{hosturl}}/profile-hash-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "SUPER_ADMIN",
+  "provider": "password",
+  "password": "YWRtaW4="
+}
+
+### 2. Profile Hash Search
+POST {{hosturl}}/profile-hash-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "limit": 10,
+  "skip": 0,
+  "filters": "{\"provider\":\"password\"}"
+}
+
+### 3. Profile Hash Entity
+GET {{hosturl}}/profile-hash-entity/SUPER_ADMIN
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

@@ -1,0 +1,88 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Menu Access Save
+POST {{hosturl}}/menu-access-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "menuRoleId": "ADMIN",
+  "menuLinkId": "DASHBOARD",
+  "read": true,
+  "create": true,
+  "update": true,
+  "delete": false,
+  "persona": "admin"
+}
+
+### 2. Menu Access Entity
+GET {{hosturl}}/menu-access-entity/ADMIN_DASHBOARD
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. Menu Access Search
+POST {{hosturl}}/menu-access-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "menuRoleId": ["ADMIN_ADMIN", "DEALER_ADMIN"],
+  "persona": "admin",
+  "page": 1,
+  "limit": 10,
+  "orderBy": "updated_at",
+  "order": "DESC"
+}
+
+### 4. Menu Access Bulk Create
+POST {{hosturl}}/menu-access-bulk-create
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "menuRoleId": "ADMIN",
+  "menuLinks": [
+    {
+      "menuLinkId": "DASHBOARD",
+      "read": true,
+      "create": true,
+      "update": true,
+      "delete": false
+    },
+    {
+      "menuLinkId": "PROFILES",
+      "read": true,
+      "create": false,
+      "update": false,
+      "delete": false
+    }
+  ]
+}
+
+### 5. Menu Access Check
+POST {{hosturl}}/menu-access-check-access
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "menuRoleIds": ["ADMIN"],
+  "menuLinkId": "DASHBOARD",
+  "action": "read"
+}
+
+### 6. Menu Access Delete
+DELETE {{hosturl}}/menu-access-delete
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "ADMIN_DASHBOARD"
+}

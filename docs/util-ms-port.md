@@ -95,6 +95,6 @@ The **auth** module sends mail when `userid` is an email:
 
 `GET /sss-url?fileName=` — public (`integration_s3_public`). `GET /sss-url?fileName=&private=true&type=Profile Photos` — private (`integration_s3_private`); optional `type` is converted with `toKebabCase` (dff-util) and added as a folder. Empty `type` → `assets` folder. Public/private is decided only by `private`. Public download is `base_url` or Encore `publicUrl`. Private download is a signed GET. Key is `{setting folder}/{kebab-type}/{name}-{uuid}{ext}`.
 
-## Bruno
+## REST Client
 
-`api/template/`, `api/mail/`, `api/sss/` using `{{baseUrl}}`, `{{token}}`, `{{xTenantId}}`.
+Requests are in `docs/rest/template.rest`, `docs/rest/mail.rest` and `docs/rest/sss.rest` using `{{hosturl}}`, `{{authToken}}` and `{{xTenantId}}`.

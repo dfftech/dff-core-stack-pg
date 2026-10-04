@@ -1,0 +1,33 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Locale Save
+POST {{hosturl}}/locale-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "en-CA",
+  "active": true
+}
+
+### 2. Locale Search
+POST {{hosturl}}/locale-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "",
+  "active": true,
+  "limit": 20,
+  "skip": 0
+}
+
+### 3. Locale Entity
+GET {{hosturl}}/locale-entity/en-US
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

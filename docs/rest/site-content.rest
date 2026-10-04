@@ -1,0 +1,43 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Site Content Save
+POST {{hosturl}}/site-content-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "PRIVACY_POLICIES",
+  "version": "1.0",
+  "lang": "en-US",
+  "content": "# Privacy Policy\n\nYour privacy matters to us.",
+  "priority": 1,
+  "active": true
+}
+
+### 2. Site Content Search
+POST {{hosturl}}/site-content-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "",
+  "lang": "en-US",
+  "limit": 10,
+  "skip": 0
+}
+
+### 3. Site Content Entity
+GET {{hosturl}}/site-content-entity/PRIVACY_POLICIES_1_0_EN_US
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 4. Site Content Get
+# optional: ?lang=en-US
+GET {{hosturl}}/site-content-get/PRIVACY_POLICIES
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

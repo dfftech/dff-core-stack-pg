@@ -1,0 +1,24 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+@uploadUrl = PASTE_data.upload_FROM_SSS_URL
+
+### 1. Sss Url Public
+GET {{hosturl}}/sss-url?fileName=JetBrainMonoFont.png&type=Test-Application
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 2. Sss Url Private
+GET {{hosturl}}/sss-url?fileName=jwt.png&private=true&type=Profile%20Photos
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. Sss Put Upload
+# PUT the file bytes to the signed upload URL from GET /sss-url (data.upload).
+# Do not send Authorization or Content-Type — the signature only includes host.
+# This URL expires in 300s; paste a fresh data.upload if you get 403.
+PUT {{uploadUrl}}
+
+# Replace with the file to upload
+< ./file.png

@@ -1,0 +1,45 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. App Setting Save Branding
+POST {{hosturl}}/app-setting-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "branding",
+  "code": "company",
+  "name": "Company Branding",
+  "isPublic": true,
+  "active": true,
+  "data": {
+    "app_name": "YourAppName",
+    "company_name": "YourBrandName",
+    "logo_url": "https://www.w3.org/Icons/w3c_home.png",
+    "favicon_url": "https://www.w3.org/favicon.ico",
+    "footer_logo_url": "https://www.w3.org/Icons/w3c_home.png",
+    "primary_color": "#2563EB",
+    "secondary_color": "#64748B"
+  }
+}
+
+### 2. App Setting Entity Branding
+GET {{hosturl}}/app-setting-entity/branding_company
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. App Setting Search
+POST {{hosturl}}/app-setting-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "branding",
+  "limit": 10,
+  "skip": 0,
+  "filters": "{\"type\":\"branding\"}"
+}

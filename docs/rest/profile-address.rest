@@ -1,0 +1,32 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Profile Address Save
+POST {{hosturl}}/profile-address-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "profileId": "ADMIN_ADMIN",
+  "addressId": "64f50ed5-c754-4bbb-980a-adf93a6d868e"
+}
+
+### 2. Profile Address Search
+POST {{hosturl}}/profile-address-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "profileId": "ADMIN_ADMIN",
+  "limit": 10,
+  "skip": 0
+}
+
+### 3. Profile Address Entity
+GET {{hosturl}}/profile-address-entity/ADMIN_ADMIN-64f50ed5-c754-4bbb-980a-adf93a6d868e
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

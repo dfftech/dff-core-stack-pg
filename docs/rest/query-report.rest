@@ -1,0 +1,14 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Query Report PROFILE_REPORT
+GET {{hosturl}}/query-report/PROFILE_REPORT?persona=admin
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 2. Query Report PROFILE_SUMMARY_BY_PERSONA
+GET {{hosturl}}/query-report/PROFILE_SUMMARY_BY_PERSONA
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

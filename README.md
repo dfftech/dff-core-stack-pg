@@ -4,7 +4,7 @@ Encore.ts + Drizzle (PostgreSQL) core stack. Utils come from **dff-util** (`Call
 
 Typical headers: `Authorization: Bearer <jwt>`, `x-tenant-id: <tenant>`.
 
-Bruno collections live under `api/`.
+REST Client request files live under `docs/rest/` (one `.rest` file per module).
 
 ---
 
@@ -226,8 +226,8 @@ Object key: `{folder}/{name}-{uuid}{ext}` (folder often `local`).
 
 ---
 
-## Bruno
+## REST Client requests
 
-Collections in `api/` (`{{baseUrl}}`, `{{token}}`, `{{xTenantId}}`):
+One file per module in `docs/rest/` for the VS Code REST Client extension. Set `@hosturl`, `@authToken` and `@xTenantId` at the top of a file, then use "Send Request" above each `###` block.
 
-`api/auth/`, `api/app-setting/`, `api/locale/`, `api/translation/`, `api/template/`, `api/mail/`, `api/sss/`, `api/otp-verification/`, `api/query-load/`, `api/query-list/`, `api/query-report/`, `api/profile/`, `api/profile-hash/`, `api/profile-address/`, `api/address/`, `api/enquiry/`, `api/site-content/`, `api/menu-access/`, `api/menu-group/`, `api/menu-link/`, `api/menu-role/`, `api/health/`.
+`docs/rest/address.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`.

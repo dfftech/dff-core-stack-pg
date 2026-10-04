@@ -1,0 +1,44 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Query Load LANG (public)
+GET {{hosturl}}/query-load/LANG
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 2. Query Load ROLE (private)
+GET {{hosturl}}/query-load/ROLE
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. Query Load PROFILE
+GET {{hosturl}}/query-load/PROFILE?persona=admin&active=true
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 4. Query Load with params JSON
+GET {{hosturl}}/query-load/PROFILE?params={%22persona%22:%22admin%22}
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 5. Query Load CONSTANT_PUBLIC
+GET {{hosturl}}/query-load/CONSTANT_PUBLIC?type=persona&active=false
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 6. Query Load CONSTANT_PRIVATE
+GET {{hosturl}}/query-load/CONSTANT_PRIVATE?type=persona&active=true
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 7. Query Load SETTING_PUBLIC
+GET {{hosturl}}/query-load/SETTING_PUBLIC?type=branding&active=true
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 8. Query Load SETTING_PRIVATE
+GET {{hosturl}}/query-load/SETTING_PRIVATE?type=integration&active=true
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

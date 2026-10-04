@@ -1,0 +1,50 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Menu Group Save
+POST {{hosturl}}/menu-group-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "icon": "layout-dashboard",
+  "name": "Administrator",
+  "nameLang": { "en-US": "Administrator" },
+  "priority": 1,
+  "persona": "admin",
+  "active": true
+}
+
+### 2. Menu Group Entity
+GET {{hosturl}}/menu-group-entity/ADMINISTRATOR
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. Menu Group Search
+POST {{hosturl}}/menu-group-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "admin",
+  "persona": "admin",
+  "active": true,
+  "page": 1,
+  "limit": 10,
+  "orderBy": "priority",
+  "order": "ASC"
+}
+
+### 4. Menu Group Delete
+DELETE {{hosturl}}/menu-group-delete
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "ADMINISTRATOR"
+}

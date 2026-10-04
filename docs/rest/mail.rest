@@ -1,0 +1,41 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Mail Send OTP
+POST {{hosturl}}/mail-send
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "templateId": "otp-email",
+  "lang": "en-US",
+  "data": {
+    "otp": "500827",
+    "logoUrl": "https://www.w3.org/Icons/w3c_home.png",
+    "messageAbove": "Your one-time password is:",
+    "messageBelow": "Do not share this code with anyone. It expires soon."
+  },
+  "to": "admin@example.com",
+  "attachments": ["https://www.w3.org/Icons/w3c_home.png"]
+}
+
+### 2. Mail Send Reset Password Success
+POST {{hosturl}}/mail-send
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "templateId": "reset-password-success",
+  "lang": "en-US",
+  "data": {
+    "logoUrl": "https://www.w3.org/Icons/w3c_home.png",
+    "messageAbove": "Your password was reset successfully.",
+    "messageBelow": "If you did not change your password, contact support immediately."
+  },
+  "to": "admin@example.com",
+  "attachments": ["https://www.w3.org/Icons/w3c_home.png"]
+}

@@ -1,0 +1,48 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. Menu Role Save
+POST {{hosturl}}/menu-role-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "name": "Admin",
+  "nameLang": { "en-US": "Admin" },
+  "persona": "admin",
+  "active": true
+}
+
+### 2. Menu Role Entity
+GET {{hosturl}}/menu-role-entity/ADMIN
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. Menu Role Search
+POST {{hosturl}}/menu-role-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "admin",
+  "persona": "admin",
+  "active": true,
+  "page": 1,
+  "limit": 10,
+  "orderBy": "updated_at",
+  "order": "DESC"
+}
+
+### 4. Menu Role Delete
+DELETE {{hosturl}}/menu-role-delete
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "ADMIN"
+}

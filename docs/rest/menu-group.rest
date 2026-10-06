@@ -1,5 +1,5 @@
 # Environment
-@hosturl = http://localhost:4000
+@hosturl = https://api-np.deeptechfoundry.ca/api/botnbolt-util
 @authToken =
 @xTenantId = local
 
@@ -7,6 +7,7 @@
 POST {{hosturl}}/menu-group-save
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
+
 Content-Type: application/json
 
 {
@@ -27,6 +28,7 @@ x-tenant-id: {{xTenantId}}
 POST {{hosturl}}/menu-group-search
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
+referer: http://localhost:4000/
 Content-Type: application/json
 
 {

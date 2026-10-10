@@ -233,8 +233,8 @@ Object key: `{folder}/{name}-{uuid}{ext}` (folder often `local`).
 Response `data` is a menu tree sorted by `priority`:
 - Active links of the persona with no group (or group `ROOT`) are top-level `type: "link"` items.
 - Active groups of the persona that have at least one link are `type: "group"` items, with their links in `children`.
-- Each item has `read`, `create`, `update`, `delete`. Permissions of several roles are merged with OR. A link with no access row gets all `false`, or all `true` when `roles` contains `SUPER_ADMIN` or `TENANT_ADMIN`.
-- A group has `read: true` when any child has a permission, and `create`, `update`, `delete` are always `false`.
+- Each item has `read`, `create`, `update`, `delete`. Permissions of several roles are merged with OR. A link with no access row gets all `false`. When `roles` contains `SUPER_ADMIN` or `TENANT_ADMIN`, every link and group is always all `true`, whatever is stored in `menu_access`.
+- A group has `read: true` when any child has a permission, and `create`, `update`, `delete` are `false` (all `true` for the full access roles above).
 
 ---
 

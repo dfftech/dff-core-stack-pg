@@ -63,9 +63,13 @@ export default class AuthorizationService {
     };
   }
 
-  /** Group is readable when any child has a permission; a group has no write permissions. */
-  static GroupNode(group: MenuGroupEntity, children: AuthorizationMenuData[]): AuthorizationMenuData {
-    const readable = children.some(hasAnyPermission);
+  /** Group is readable when any child has a permission; a group has no write permissions unless full access. */
+  static GroupNode(
+    group: MenuGroupEntity,
+    children: AuthorizationMenuData[],
+    hasFullAccess: boolean
+  ): AuthorizationMenuData {
+    const readable = hasFullAccess || children.some(hasAnyPermission);
     return {
       id: group.id,
       type: "group",
@@ -75,9 +79,9 @@ export default class AuthorizationService {
       priority: group.priority,
       persona: group.persona,
       read: readable,
-      create: false,
-      update: false,
-      delete: false,
+      create: hasFullAccess,
+      update: hasFullAccess,
+      delete: hasFullAccess,
       children: children.sort(byPriority),
     };
   }
@@ -98,7 +102,9 @@ export default class AuthorizationService {
           .select()
           .from(menuLinkEntity)
           .where(and(eq(menuLinkEntity.active, true), eq(menuLinkEntity.persona, dto.persona))),
-        db.select().from(menuAccessEntity).where(inArray(menuAccessEntity.menu_role_id, dto.roles)),
+        hasFullAccess
+          ? Promise.resolve([] as MenuAccessEntity[])
+          : db.select().from(menuAccessEntity).where(inArray(menuAccessEntity.menu_role_id, dto.roles)),
       ]);
 
     const access = this.MergeAccess(accessRows);
@@ -107,7 +113,7 @@ export default class AuthorizationService {
     const items: AuthorizationMenuData[] = [];
 
     for (const link of links) {
-      const node = this.LinkNode(link, access.get(link.id) ?? permission(hasFullAccess));
+      const node = this.LinkNode(link, hasFullAccess ? permission(true) : access.get(link.id) ?? permission(false));
       const groupId = link.menu_group_id;
       if (!groupId || groupId === ROOT || !groupMap.has(groupId)) {
         items.push(node);
@@ -120,7 +126,7 @@ export default class AuthorizationService {
 
     for (const group of groups) {
       const children = childrenByGroup.get(group.id);
-      if (children?.length) items.push(this.GroupNode(group, children));
+      if (children?.length) items.push(this.GroupNode(group, children, hasFullAccess));
     }
 
     return items.sort(byPriority);

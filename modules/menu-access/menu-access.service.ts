@@ -1,5 +1,6 @@
 import { AppCodeByType, toViewMapper } from "dff-util";
 import { and, asc, count, desc, eq, inArray, type SQL } from "drizzle-orm";
+import { isFullAccessRoleId } from "../../utils/app-roles";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import MenuGroupService from "../menu-group/menu-group.service";
 import MenuLinkService from "../menu-link/menu-link.service";
@@ -120,6 +121,7 @@ export default class MenuAccessService {
 
   static async SaveService(dto: MenuAccessDto): Promise<MenuAccessData> {
     const log = logger();
+    if (isFullAccessRoleId(dto.menuRoleId)) throw new Error("RESERVED_ROLES_NOT_ALLOWED");
     const id = dto.id || AppCodeByType(dto.menuLinkId, dto.menuRoleId);
     log.info("Creating menu access", { menuRoleId: dto.menuRoleId, menuLinkId: dto.menuLinkId });
     const existing = await this.FindById(id);
@@ -231,6 +233,7 @@ export default class MenuAccessService {
 
   static async BulkCreateMenuAccessService(dto: BulkCreateMenuAccessDto): Promise<MenuAccessData[]> {
     const log = logger();
+    if (isFullAccessRoleId(dto.menuRoleId)) throw new Error("RESERVED_ROLE_ID");
     const role = await MenuRoleService.FindById(dto.menuRoleId);
     log.info("Bulk creating menu access", { menuRoleId: dto.menuRoleId, count: dto.menuLinks.length });
     const saved: MenuAccessData[] = [];

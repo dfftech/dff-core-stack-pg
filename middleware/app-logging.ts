@@ -58,6 +58,9 @@ export const LoggingMiddleware = middleware(async (req, next) => {
      err = err.error || err;
     await logger.error("Request failed", {
       error_message: err.message,
+      error_cause: err.cause?.message,
+      error_code: err.cause?.code,
+      error_detail: err.cause?.detail,
       error_stack: err.stack,
     });
 

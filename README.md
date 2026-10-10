@@ -226,6 +226,18 @@ Object key: `{folder}/{name}-{uuid}{ext}` (folder often `local`).
 
 ---
 
+## Authorization
+
+`GET /authorization/:id?roles=ADMIN_ADMIN,SUPER_ADMIN` where `:id` is the persona and `roles` is a comma separated list of menu role ids. `modules/authorization` has its own `AuthorizationService`, which reads `menu_groups`, `menu_links` and `menu_access` directly. Missing or empty `roles` returns `INVALID_ROLES`.
+
+Response `data` is a menu tree sorted by `priority`:
+- Active links of the persona with no group (or group `ROOT`) are top-level `type: "link"` items.
+- Active groups of the persona that have at least one link are `type: "group"` items, with their links in `children`.
+- Each item has `read`, `create`, `update`, `delete`. Permissions of several roles are merged with OR. A link with no access row gets all `false`, or all `true` when `roles` contains `SUPER_ADMIN` or `TENANT_ADMIN`.
+- A group has `read: true` when any child has a permission, and `create`, `update`, `delete` are always `false`.
+
+---
+
 ## REST Client requests
 
 One file per module in `docs/rest/` for the VS Code REST Client extension. Set `@hosturl`, `@authToken` and `@xTenantId` at the top of a file, then use "Send Request" above each `###` block.

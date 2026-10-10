@@ -1,5 +1,6 @@
 import { AppCodeByType, toViewMapper } from "dff-util";
 import { and, asc, count, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { isFullAccessRoleId } from "../../utils/app-roles";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import MenuAccessService from "../menu-access/menu-access.service";
 import MenuLinkService from "../menu-link/menu-link.service";
@@ -94,6 +95,7 @@ export default class MenuRoleService {
   static async SaveService(dto: MenuRoleDto): Promise<MenuRolesData> {
     const log = logger();
     const id = dto.id || AppCodeByType(dto.nameLang?.["en-US"] || dto.name || "menu_role", dto.persona);
+    if (isFullAccessRoleId(id)) throw new Error("RESERVED_ROLES_NOT_ALLOWED");
     log.info("Creating menu role", { name: dto.nameLang?.["en-US"] });
     const existing = await this.FindById(id);
     if (existing && !dto.id) throw new Error(`Menu role already exists with id ${id}`);

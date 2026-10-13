@@ -1,4 +1,4 @@
-import type { ResponseType } from "../../utils/app-types";
+import { AppError } from "../../utils/app-error";
 import type { ReportQueryRow } from "../../utils/query-types";
 import { queryReportEntity } from "./query-report.entity";
 import {
@@ -17,7 +17,7 @@ export default class QueryReportService {
   static async ReportService(
     id: string,
     paramObj: Record<string, string>
-  ): Promise<ResponseType> {
+  ) {
     try {
       const pool = sessionPool();
 
@@ -29,27 +29,24 @@ export default class QueryReportService {
       const queryDef = defResult.rows[0];
 
       if (!queryDef) {
-        return { data: null, error: "RECORD_NOT_EXISTS" };
+        throw new AppError("RECORD_NOT_EXISTS");
       }
 
       const mergedParams = resolveParams(queryDef.params, paramObj);
 
       const built = buildPgQuery(queryDef.query, mergedParams);
       if (built.error) {
-        return { data: null, error: `QUERY_BUILD_ERROR: ${built.error}` };
+        throw new AppError(`QUERY_BUILD_ERROR: ${built.error}`);
       }
 
       await logSql(id, built.text!, built.values ?? []);
       const result = await pool.query({ text: built.text!, values: built.values });
       const data = mapRows((result?.rows as Record<string, unknown>[]) ?? []);
-      return {
-        data,
-        status: "REPORT_SUCCESSFULLY",
-        meta: { requestId: queryDef.id },
-      };
+      return { data, queryId: queryDef.id };
     } catch (err: unknown) {
+      if (err instanceof AppError) throw err;
       const message = err instanceof Error ? err.message : String(err);
-      return { data: null, error: `EXECUTION_ERROR: ${message}` };
+      throw new AppError(`EXECUTION_ERROR: ${message}`);
     }
   }
 }

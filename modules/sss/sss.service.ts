@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { toKebabCase } from "dff-util";
-import type { ResponseType } from "../../utils/app-types";
+import { AppError } from "../../utils/app-error";
 import { logger } from "../../utils/app-util";
 import {
   SETTING_S3_PRIVATE,
@@ -60,16 +60,16 @@ export default class SssService {
     return { upload, download, key, access: isPrivate ? "private" : "public" };
   }
 
-  static async UrlService(input: SssUrlRequest): Promise<ResponseType> {
+  static async UrlService(input: SssUrlRequest) {
     const log = logger();
     try {
       const fileName = String(input.fileName || "").trim();
-      if (!fileName) return { data: null, error: "INVALID_DATA" };
+      if (!fileName) throw new AppError("INVALID_DATA");
       const type = String(input.type ?? "").trim();
       const typeFolder = (type && toKebabCase(type)) || DEFAULT_TYPE_FOLDER;
       const isPrivate = input.private === true;
       const s3 = await AppSettingService.DataByIdService(this.SettingId(isPrivate));
-      if (s3.enabled === false) return { data: null, error: "S3_NOT_CONFIGURED" };
+      if (s3.enabled === false) throw new AppError("S3_NOT_CONFIGURED");
       const folder = [settingText(s3, "folder"), typeFolder]
         .map((p) => p.replace(/^\/+|\/+$/g, ""))
         .filter(Boolean)
@@ -82,7 +82,7 @@ export default class SssService {
         ? this.AwsUrls(key, isPrivate, aws, baseUrl, ttl)
         : await this.EncoreUrls(key, isPrivate, baseUrl, ttl);
       log.info(`Generated sss url for ${key}`, { access: data.access });
-      return { data, status: "LOADED_SUCCESSFULLY" };
+      return data;
     } catch (error) {
       log.error(`Failed to generate sss url: ${error}`);
       throw error;

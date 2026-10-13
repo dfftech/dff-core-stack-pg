@@ -1,6 +1,5 @@
 import { and, count, eq, ilike, sql, type SQL } from "drizzle-orm";
-import { AppUUID4, toEntityMapper, toViewMapper } from "dff-util";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import { AppUUID4, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type { OtpVerificationDto, VerifyOtpDto } from "./otp-verification.dto";
 import { otpVerificationEntity, type OtpVerificationEntity } from "./otp-verification.entity";
@@ -37,17 +36,17 @@ export default class OtpVerificationService {
     return diffMinutes > OTP_EXPIRY_MINUTES;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const rows = await this.Db()
       .select()
       .from(otpVerificationEntity)
       .where(eq(otpVerificationEntity.id, id))
       .limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
+    if (!entity) return null;
     const view = toViewMapper(entity) as Record<string, unknown>;
     delete view.otp;
-    return { data: view };
+    return view;
   }
 
   static async GetOtpService(id: string): Promise<OtpVerificationEntity | null> {
@@ -59,7 +58,7 @@ export default class OtpVerificationService {
     return rows[0] ?? null;
   }
 
-  static async SaveService(dto: OtpVerificationDto): Promise<ResponseType> {
+  static async SaveService(dto: OtpVerificationDto) {
     const log = logger();
     try {
       let entity = toEntityMapper({
@@ -81,7 +80,7 @@ export default class OtpVerificationService {
       log.info(`Saved otp: ${entity.id}`);
       const view = toViewMapper(entity) as Record<string, unknown>;
       delete view.otp;
-      return { data: view };
+      return view;
     } catch (error) {
       log.error(`Failed to save otp: ${error}`);
       throw error;
@@ -94,7 +93,7 @@ export default class OtpVerificationService {
       otp: dto.otp,
       isVerified: false,
     });
-    const row = await this.GetOtpService((result.data as { id: string }).id);
+    const row = await this.GetOtpService((result as { id: string }).id);
     return row ? (toViewMapper(row) as OtpVerificationDto & { id: string; otp: string }) : null;
   }
 
@@ -135,7 +134,7 @@ export default class OtpVerificationService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     const where = this.buildSearchWhere(input);
     const limit = input.limit ?? 10;
     const skip = input.skip ?? 0;

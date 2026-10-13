@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { toViewMapper } from "dff-util";
 import { and, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import type { ResponseType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type { AddressDto, AddressSearchDto } from "./address.dto";
 import { addressEntity, type AddressEntity } from "./address.entity";
+import { AppError } from "../../utils/app-error";
 
 export default class AddressService {
   static Db() {
@@ -26,15 +26,15 @@ export default class AddressService {
     } as AddressEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const rows = await this.Db()
       .select()
       .from(addressEntity)
       .where(eq(addressEntity.id, id))
       .limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   static SaveValidation(dto: AddressDto): string | null {
@@ -66,11 +66,11 @@ export default class AddressService {
     } as AddressEntity;
   }
 
-  static async SaveService(dto: AddressDto): Promise<ResponseType> {
+  static async SaveService(dto: AddressDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
 
       let entity = this.FromDto(dto);
       const existing =
@@ -88,7 +88,7 @@ export default class AddressService {
         entity = inserted ?? entity;
       }
       log.info(`Saved address: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save address: ${error}`);
       throw error;
@@ -121,7 +121,7 @@ export default class AddressService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: AddressSearchDto): Promise<ResponseType> {
+  static async SearchService(input: AddressSearchDto) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
@@ -142,7 +142,6 @@ export default class AddressService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 }

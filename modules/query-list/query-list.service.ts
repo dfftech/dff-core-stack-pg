@@ -1,4 +1,5 @@
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import type { SearchType } from "dff-util";
+import { AppError } from "../../utils/app-error";
 import type { ListQueryRow } from "../../utils/query-types";
 import { queryListEntity } from "./query-list.entity";
 import {
@@ -19,7 +20,7 @@ export default class QueryListService {
     id: string,
     paramObj: Record<string, string>,
     opts?: SearchType
-  ): Promise<ResponseType> {
+  ) {
     try {
       const pool = sessionPool();
 
@@ -31,14 +32,14 @@ export default class QueryListService {
       const queryDef = defResult.rows[0];
 
       if (!queryDef) {
-        return { data: null, error: "RECORD_NOT_EXISTS" };
+        throw new AppError("RECORD_NOT_EXISTS");
       }
 
       const mergedParams = resolveParams(queryDef.params, paramObj);
 
       const built = buildPgQuery(queryDef.query, mergedParams);
       if (built.error) {
-        return { data: null, error: `QUERY_BUILD_ERROR: ${built.error}` };
+        throw new AppError(`QUERY_BUILD_ERROR: ${built.error}`);
       }
 
       const limit = opts?.limit ?? queryDef.default_limit ?? 10;
@@ -57,15 +58,11 @@ export default class QueryListService {
       await logSql(id, text, values);
       const result = await pool.query({ text, values });
       const data = mapRows((result?.rows as Record<string, unknown>[]) ?? []);
-      return {
-        data: { rows: data, col: queryDef.col },
-        limit,
-        skip,
-        status: "LISTED_SUCCESSFULLY",
-      };
+      return { rows: data, col: queryDef.col, limit, skip };
     } catch (err: unknown) {
+      if (err instanceof AppError) throw err;
       const message = err instanceof Error ? err.message : String(err);
-      return { data: null, error: `EXECUTION_ERROR: ${message}` };
+      throw new AppError(`EXECUTION_ERROR: ${message}`);
     }
   }
 }

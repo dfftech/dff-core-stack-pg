@@ -1,6 +1,5 @@
 import { CallLangText, toEntityMapper, toViewMapper } from "dff-util";
 import { and, count, eq, ilike, inArray, ne, or, sql, type SQL } from "drizzle-orm";
-import type { ResponseType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type {
   TranslationDataDto,
@@ -11,6 +10,7 @@ import type {
   TranslationTextDto,
 } from "./translation.dto";
 import { translationEntity, type TranslationEntity } from "./translation.entity";
+import { AppError } from "../../utils/app-error";
 
 const DEFAULT_LANG = "en-US";
 
@@ -43,15 +43,15 @@ export default class TranslationService {
     return out;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const rows = await this.Db()
       .select()
       .from(translationEntity)
       .where(eq(translationEntity.id, id))
       .limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   static SaveValidation(dto: TranslationDto): string | null {
@@ -60,11 +60,11 @@ export default class TranslationService {
     return null;
   }
 
-  static async SaveService(dto: TranslationDto): Promise<ResponseType> {
+  static async SaveService(dto: TranslationDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
       const id = `${dto.type}_${dto.key}`;
       const existing =
         (await this.Db().select().from(translationEntity).where(eq(translationEntity.id, id)).limit(1))[0] ??
@@ -86,7 +86,7 @@ export default class TranslationService {
         entity = inserted ?? entity;
       }
       log.info(`Saved translation: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save translation: ${error}`);
       throw error;
@@ -138,11 +138,11 @@ export default class TranslationService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: TranslationSearchDto): Promise<ResponseType> {
+  static async SearchService(input: TranslationSearchDto) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
-    if (where && "error" in where) return { data: null, error: where.error };
+    if (where && "error" in where) throw new AppError(where.error);
     const limit = input.limit ?? 10;
     const skip = input.skip ?? 0;
     const [rows, totalRow] = await Promise.all([
@@ -154,7 +154,6 @@ export default class TranslationService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 
@@ -191,61 +190,61 @@ export default class TranslationService {
     return data;
   }
 
-  static async DataService(dto: TranslationDataDto): Promise<ResponseType> {
+  static async DataService(dto: TranslationDataDto) {
     const typed = this.TypeLangWhere(dto.type, dto.lang);
-    if (!Array.isArray(typed)) return { data: null, error: typed.error };
+    if (!Array.isArray(typed)) throw new AppError(typed.error);
     const parts: SQL[] = [...typed, eq(translationEntity.active, true)];
     const rows = await this.Db()
       .select()
       .from(translationEntity)
       .where(and(...parts))
       .orderBy(sql`${translationEntity.type} ASC, ${translationEntity.key} ASC`);
-    return { data: rows.map((r: TranslationEntity) => toViewMapper(r)), status: "LISTED_SUCCESSFULLY" };
+    return rows.map((r: TranslationEntity) => toViewMapper(r));
   }
 
-  static async LangService(dto: TranslationLangDto): Promise<ResponseType> {
+  static async LangService(dto: TranslationLangDto) {
     if (dto.lang && !/^[a-zA-Z]{2}-[a-zA-Z]{2}$/.test(dto.lang)) {
-      return { data: null, error: "INVALID_LANG" };
+      throw new AppError("INVALID_LANG");
     }
     const common = await this.FetchActiveByTypeService(true);
     const others = await this.FetchActiveByTypeService(false);
     const byKey = this.OverlayKeys(common, others);
-    return { data: this.ToLangResponse(byKey, dto.lang), status: "LISTED_SUCCESSFULLY" };
+    return this.ToLangResponse(byKey, dto.lang);
   }
 
-  static async TextService(dto: TranslationTextDto): Promise<ResponseType> {
+  static async TextService(dto: TranslationTextDto) {
     const log = logger();
     try {
-      if (!dto.text || !dto.target) return { data: null, error: "INVALID_DATA" };
+      if (!dto.text || !dto.target) throw new AppError("INVALID_DATA");
       const source = dto.source || DEFAULT_LANG;
-      if (source === dto.target) return { data: { text: dto.text, source, target: dto.target } };
+      if (source === dto.target) return { text: dto.text, source, target: dto.target };
       const text = await CallLangText(dto.text, source, dto.target);
-      return { data: { text, source, target: dto.target }, status: "TRANSLATED_SUCCESSFULLY" };
+      return { text, source, target: dto.target };
     } catch (error) {
       log.error(`Failed to translate text: ${error}`);
       throw error;
     }
   }
 
-  static async MapService(lang: string): Promise<ResponseType> {
+  static async MapService(lang: string) {
     return this.LangService({ lang: lang || DEFAULT_LANG });
   }
 
-  static async FillService(dto: TranslationFillDto): Promise<ResponseType> {
+  static async FillService(dto: TranslationFillDto) {
     const log = logger();
     try {
       if (!dto.lang || !/^[a-zA-Z]{2}-[a-zA-Z]{2}$/.test(dto.lang)) {
-        return { data: null, error: "INVALID_LANG" };
+        throw new AppError("INVALID_LANG");
       }
       const source = dto.source || DEFAULT_LANG;
-      if (source === dto.lang) return { data: { saved: 0 }, status: "SAVED_SUCCESSFULLY" };
+      if (source === dto.lang) return { saved: 0 };
       const rows = await this.Db()
         .select()
         .from(translationEntity)
         .where(eq(translationEntity.active, true));
       const saved = await this.FillRowsService(rows, source, dto.lang);
       log.info(`Filled translation data for ${dto.lang}`, { saved });
-      return { data: { saved, lang: dto.lang, source }, status: "SAVED_SUCCESSFULLY" };
+      return { saved, lang: dto.lang, source };
     } catch (error) {
       log.error(`Failed to fill translations: ${error}`);
       throw error;

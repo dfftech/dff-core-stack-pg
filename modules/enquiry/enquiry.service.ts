@@ -1,9 +1,9 @@
-import { AppCodeByType, RegExp as AppRegExp, toEntityMapper, toViewMapper } from "dff-util";
+import { AppCodeByType, RegExp as AppRegExp, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
-import type { ResponseType, SearchType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type { EnquiryDto } from "./enquiry.dto";
 import { enquiryEntity, type EnquiryEntity } from "./enquiry.entity";
+import { AppError } from "../../utils/app-error";
 
 export default class EnquiryService {
   static Db() {
@@ -25,12 +25,12 @@ export default class EnquiryService {
     } as EnquiryEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const table = this.EntityService();
     const rows = await this.Db().select().from(table).where(eq(table.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   static SaveValidation(dto: EnquiryDto): string | null {
@@ -39,11 +39,11 @@ export default class EnquiryService {
     return null;
   }
 
-  static async SaveService(dto: EnquiryDto): Promise<ResponseType> {
+  static async SaveService(dto: EnquiryDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
       const db = this.Db();
       const table = this.EntityService();
       const id = dto.id || AppCodeByType(dto.name);
@@ -57,7 +57,7 @@ export default class EnquiryService {
         entity = inserted ?? entity;
       }
       log.info(`Saved enquiry: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save enquiry: ${error}`);
       throw error;
@@ -77,7 +77,7 @@ export default class EnquiryService {
   }
 
   /** No priority column on enquiries — latest updated first. */
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
@@ -92,12 +92,11 @@ export default class EnquiryService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 
   /** Top active record (latest updated). */
-  static async GetService(): Promise<ResponseType> {
+  static async GetService() {
     const table = this.EntityService();
     const rows = await this.Db()
       .select()
@@ -106,7 +105,7 @@ export default class EnquiryService {
       .orderBy(desc(table.updated_at))
       .limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity), status: "RETRIEVED_SUCCESSFULLY" };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 }

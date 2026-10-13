@@ -1,6 +1,9 @@
 import { api, type Query } from "encore.dev/api";
-import type { RequestByIdType, RequestQueryType, ResponseType } from "../../utils/app-types";
+import type { RequestByIdType, ResponseType } from "dff-util";
+import type { RequestQueryType } from "../../utils/app-types";
 import AuthorizationService from "./authorization.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 type AuthorizationRequest = RequestByIdType &
   RequestQueryType & {
@@ -14,13 +17,21 @@ export const Authorization = api<AuthorizationRequest, ResponseType>(
     path: "/authorization/:id",
   },
   async (req) => {
-    const roles = String(req.roles ?? "")
-      .split(",")
-      .map((role) => role.trim())
-      .filter(Boolean);
-    if (roles.length === 0) return { data: null, error: "INVALID_ROLES" };
+    try {
+      const roles = String(req.roles ?? "")
+        .split(",")
+        .map((role) => role.trim())
+        .filter(Boolean);
+      if (roles.length === 0) return { data: null, error: "INVALID_ROLES" };
 
-    const data = await AuthorizationService.MenuService({ persona: req.id, roles });
-    return { data };
+      const data = await AuthorizationService.MenuService({ persona: req.id, roles });
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to authorization: ${error}`);
+      throw error;
+    }
   }
 );

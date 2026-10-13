@@ -1,11 +1,12 @@
 import { APIError, ErrCode, middleware } from "encore.dev/api";
-import { JwtDecode, type SessionInfo } from "dff-util";
+import { JwtDecode, type ResponseType, type SessionInfo } from "dff-util";
 import { createKafkaLogger, initKafkaProducer } from "./kafka-logger";
 initKafkaProducer();
 export const LoggingMiddleware = middleware(async (req, next) => {
   const startTime = Date.now();
   const callMeta = req.requestMeta as any;
   const tenantId = callMeta?.headers?.["x-tenant-id"];
+  const branchId = String(callMeta?.headers?.["x-branch-id"] ?? "").trim() || undefined;
   const requestId = callMeta?.headers?.["request-id"] || crypto.randomUUID();
   const traceId = callMeta?.headers?.["x-encore-trace-id"];
   let sessionUser: SessionInfo;
@@ -28,9 +29,11 @@ export const LoggingMiddleware = middleware(async (req, next) => {
     requestId,
     traceId,
     sessionUser.id,
-    tenantId
+    tenantId,
+    branchId
   );
   req.data.tenant_id = tenantId;
+  req.data.branch_id = branchId;
   req.data.session_user = sessionUser;
   req.data.request_id = requestId;
   req.data.logger = logger;
@@ -42,6 +45,15 @@ export const LoggingMiddleware = middleware(async (req, next) => {
 
   try {
     const response = await next(req);
+    const payload = response.payload as ResponseType | null | undefined;
+    if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+      payload.meta = {
+        requestId,
+        timestamp: new Date().toISOString(),
+        duration: Date.now() - startTime,
+        ...payload.meta,
+      };
+    }
     response.header.set("request-id", requestId);
     response.header.set("session-user-id", sessionUser.id);
 

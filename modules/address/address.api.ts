@@ -1,7 +1,9 @@
 import { api } from "encore.dev/api";
-import type { ResponseType } from "../../utils/app-types";
+import type { ResponseType } from "dff-util";
 import type { AddressDto, AddressSearchDto } from "./address.dto";
 import AddressService from "./address.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveAddress = api<AddressDto, ResponseType>(
   {
@@ -10,7 +12,16 @@ export const SaveAddress = api<AddressDto, ResponseType>(
     path: "/address-save",
   },
   async (input) => {
-    return AddressService.SaveService(input);
+    try {
+      const data = await AddressService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save address: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -21,7 +32,16 @@ export const SearchAddresses = api<AddressSearchDto, ResponseType>(
     path: "/address-search",
   },
   async (input) => {
-    return AddressService.SearchService(input);
+    try {
+      const page = await AddressService.SearchService(input);
+      return { ...page, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search addresses: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -32,6 +52,15 @@ export const EntityByIdAddress = api<{ id: string }, ResponseType>(
     path: "/address-entity/:id",
   },
   async (params) => {
-    return AddressService.EntityByIdService(params.id);
+    try {
+      const data = await AddressService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id address: ${error}`);
+      throw error;
+    }
   }
 );

@@ -1,7 +1,9 @@
 import { api } from "encore.dev/api";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import type { ResponseType, SearchType } from "dff-util";
 import type { AppSettingDto } from "./app-setting.dto";
 import AppSettingService from "./app-setting.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveAppSetting = api<AppSettingDto, ResponseType>(
   {
@@ -10,7 +12,16 @@ export const SaveAppSetting = api<AppSettingDto, ResponseType>(
     path: "/app-setting-save",
   },
   async (input) => {
-    return AppSettingService.SaveService(input);
+    try {
+      const data = await AppSettingService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save app setting: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -21,7 +32,16 @@ export const SearchAppSettings = api<SearchType, ResponseType>(
     path: "/app-setting-search",
   },
   async (input) => {
-    return AppSettingService.SearchService(input);
+    try {
+      const page = await AppSettingService.SearchService(input);
+      return { ...page, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search app settings: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -32,6 +52,15 @@ export const EntityByIdAppSetting = api<{ id: string }, ResponseType>(
     path: "/app-setting-entity/:id",
   },
   async (params) => {
-    return AppSettingService.EntityByIdService(params.id);
+    try {
+      const data = await AppSettingService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id app setting: ${error}`);
+      throw error;
+    }
   }
 );

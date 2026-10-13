@@ -19,12 +19,13 @@ export default class AppHttp {
 
   static async Get(url: string, params: any) {
     url = url.includes('http') ? url : API_BASE_URL + url;
-    const { logger, token, request_id, tenant_id } = session_meta();
+    const { logger, token, request_id, tenant_id, branch_id } = session_meta();
     const headers = {
       ['Content-Type']: 'application/json',
       authorization: AppHttp.AUTHORIZATION_TOKEN || token || this.Token(),
       'request-id': request_id,
-      'x-tenant-id': tenant_id
+      'x-tenant-id': tenant_id,
+      ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
       "HTTP GET Call: " + url +
@@ -36,12 +37,13 @@ export default class AppHttp {
 
   static async Post(url: string, params: any) {
     url = url.includes('http') ? url : API_BASE_URL + url;
-    const { logger, token, request_id, tenant_id } = session_meta();
+    const { logger, token, request_id, tenant_id, branch_id } = session_meta();
     const headers = {
       ['Content-Type']: 'application/json',
       authorization: AppHttp.AUTHORIZATION_TOKEN || token || this.Token(),
       'request-id': request_id,
-      'x-tenant-id': tenant_id
+      'x-tenant-id': tenant_id,
+      ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
       "HTTP POST Call: " + url +
@@ -53,12 +55,13 @@ export default class AppHttp {
 
   static async Put(url: string, params: any) {
     url = url.includes('http') ? url : API_BASE_URL + url;
-    const { logger, token, request_id, tenant_id } = session_meta();
+    const { logger, token, request_id, tenant_id, branch_id } = session_meta();
     const headers = {
       ['Content-Type']: 'application/json',
       authorization: AppHttp.AUTHORIZATION_TOKEN || token || this.Token(),
       'request-id': request_id,
-      'x-tenant-id': tenant_id
+      'x-tenant-id': tenant_id,
+      ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
       "HTTP PUT Call: " + url +
@@ -70,12 +73,13 @@ export default class AppHttp {
 
   static async Delete(url: string, params: any) {
     url = url.includes('http') ? url : API_BASE_URL + url;
-    const { logger, token, request_id, tenant_id } = session_meta();
+    const { logger, token, request_id, tenant_id, branch_id } = session_meta();
     const headers = {
       ['Content-Type']: 'application/json',
       authorization: AppHttp.AUTHORIZATION_TOKEN || token || this.Token(),
       'request-id': request_id,
-      'x-tenant-id': tenant_id
+      'x-tenant-id': tenant_id,
+      ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
       "HTTP DELETE Call: " + url +

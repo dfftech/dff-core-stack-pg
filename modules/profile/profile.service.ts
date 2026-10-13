@@ -1,6 +1,5 @@
 import { and, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import { AppCodeByType, toEntityMapper, toViewMapper } from "dff-util";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import { AppCodeByType, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type { ProfileDto } from "./profile.dto";
 import { profileEntity, type ProfileEntity } from "./profile.entity";
@@ -27,13 +26,13 @@ export default class ProfileService {
     } as ProfileEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const db = this.Db();
     const table = this.EntityService();
     const rows = await db.select().from(table).where(eq(table.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   static async FindByEmailService(email: string) {
@@ -89,7 +88,7 @@ export default class ProfileService {
     } as ProfileEntity;
   }
 
-  static async SaveService(dto: ProfileDto): Promise<ResponseType> {
+  static async SaveService(dto: ProfileDto) {
     const log = logger();
     try {
       const { password, provider, ...profileDto } = dto;
@@ -112,7 +111,7 @@ export default class ProfileService {
         });
       }
       log.info(`Saved profile: ${entity.id}`);
-      return { data: toViewMapper(entity) };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save profile: ${error}`);
       throw error;
@@ -158,7 +157,7 @@ export default class ProfileService {
     return and(...parts);
   }
 
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     const log = logger();
     const db = this.Db();
     const table = this.EntityService();

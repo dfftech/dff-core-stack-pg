@@ -1,10 +1,10 @@
 import { toEntityMapper, toViewMapper } from "dff-util";
 import { and, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import type { ResponseType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import { addressEntity } from "../address/address.entity";
 import type { ProfileAddressDto, ProfileAddressSearchDto } from "./profile-address.dto";
 import { profileAddressEntity, type ProfileAddressEntity } from "./profile-address.entity";
+import { AppError } from "../../utils/app-error";
 
 export default class ProfileAddressService {
   static Db() {
@@ -26,15 +26,15 @@ export default class ProfileAddressService {
     } as ProfileAddressEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const rows = await this.Db()
       .select()
       .from(profileAddressEntity)
       .where(eq(profileAddressEntity.id, id))
       .limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   static LinkId(dto: ProfileAddressDto): string {
@@ -56,11 +56,11 @@ export default class ProfileAddressService {
     return null;
   }
 
-  static async SaveService(dto: ProfileAddressDto): Promise<ResponseType> {
+  static async SaveService(dto: ProfileAddressDto) {
     const log = logger();
     try {
       const invalid = await this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
 
       const id = this.LinkId(dto);
       let entity = toEntityMapper({
@@ -87,7 +87,7 @@ export default class ProfileAddressService {
         entity = inserted ?? entity;
       }
       log.info(`Saved profile address: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save profile address: ${error}`);
       throw error;
@@ -112,7 +112,7 @@ export default class ProfileAddressService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: ProfileAddressSearchDto): Promise<ResponseType> {
+  static async SearchService(input: ProfileAddressSearchDto) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
@@ -133,7 +133,6 @@ export default class ProfileAddressService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 }

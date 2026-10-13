@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { api } from "encore.dev/api";
-import { RequestByIdType, ResponseType } from "../../utils/app-types";
-import { session_meta } from "../../utils/app-util";
+import type { RequestByIdType, ResponseType } from "dff-util";
+import { logger, session_meta } from "../../utils/app-util";
 
 function appVersion(): string {
   try {
@@ -29,21 +29,26 @@ export const HealthCheck = api<HealthRequest, ResponseType>(
     path: "/health/:id",
   },
   async (params: HealthRequest) => {
-    const tenant = String(params.id);
-    const { logger } = session_meta();
-    await logger.info("Processing health request", {
-      tenant,
-      version,
-      query: params.query,
-    });
-    return {
-      status: 200,
-      data: {
-        message: "Health Check Pass",
+    try {
+      const tenant = String(params.id);
+      const { logger } = session_meta();
+      await logger.info("Processing health request", {
         tenant,
         version,
-        query: params.query ? { query: params.query } : undefined,
-      },
-    };
+        query: params.query,
+      });
+      return {
+        status: 200,
+        data: {
+          message: "Health Check Pass",
+          tenant,
+          version,
+          query: params.query ? { query: params.query } : undefined,
+        },
+      };
+    } catch (error) {
+      logger().error(`Failed to health check: ${error}`);
+      throw error;
+    }
   }
 );

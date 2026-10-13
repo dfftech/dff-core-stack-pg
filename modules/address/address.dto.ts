@@ -1,4 +1,4 @@
-import type { SearchType } from "../../utils/app-types";
+import type { SearchType } from "dff-util";
 
 export type AddressDto = {
   id?: string;

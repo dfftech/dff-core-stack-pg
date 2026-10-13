@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import type { ResponseType, SearchType } from "dff-util";
 import type {
   ForgotPasswordDto,
   GoogleSigninRequestDto,
@@ -11,6 +11,8 @@ import type {
   VerifyAccountDto,
 } from "./auth.dto";
 import AuthService from "./auth.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveAuth = api<SignupDto, ResponseType>(
   {
@@ -19,7 +21,16 @@ export const SaveAuth = api<SignupDto, ResponseType>(
     path: "/auth-save",
   },
   async (input: SignupDto) => {
-    return await AuthService.SaveService(input);
+    try {
+      const data = await AuthService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save auth: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -30,7 +41,16 @@ export const SearchAuths = api<SearchType, ResponseType>(
     path: "/auth-search",
   },
   async (input: SearchType) => {
-    return await AuthService.SearchService(input);
+    try {
+      const page = await AuthService.SearchService(input);
+      return { ...page, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search auths: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -41,7 +61,16 @@ export const EntityByIdAuth = api<{ id: string }, ResponseType>(
     path: "/auth-entity/:id",
   },
   async (params: { id: string }) => {
-    return await AuthService.EntityByIdService(params.id);
+    try {
+      const data = await AuthService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id auth: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -52,8 +81,16 @@ export const Signin = api<SigninDto, ResponseType>(
     path: "/auth-signin",
   },
   async (body: SigninDto) => {
-    const data = await AuthService.SigninService(body);
-    return { data };
+    try {
+      const data = await AuthService.SigninService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to signin: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -64,8 +101,16 @@ export const Signup = api<SignupDto, ResponseType>(
     path: "/auth-signup",
   },
   async (body: SignupDto) => {
-    const data = await AuthService.SignupService(body);
-    return { data };
+    try {
+      const data = await AuthService.SignupService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to signup: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -76,8 +121,16 @@ export const GoogleSignin = api<GoogleSigninRequestDto, ResponseType>(
     path: "/auth-google-signin",
   },
   async (body: GoogleSigninRequestDto) => {
-    const data = await AuthService.GoogleSignInWithCredential(body);
-    return { data };
+    try {
+      const data = await AuthService.GoogleSignInWithCredential(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to google signin: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -88,8 +141,16 @@ export const ForgotPassword = api<ForgotPasswordDto, ResponseType>(
     path: "/auth-forgot-password",
   },
   async (body: ForgotPasswordDto) => {
-    const data = await AuthService.ForgotPasswordService(body);
-    return { data };
+    try {
+      const data = await AuthService.ForgotPasswordService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to forgot password: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -100,8 +161,16 @@ export const VerifyOtp = api<VerificationOtpDto, ResponseType>(
     path: "/auth-verify-otp",
   },
   async (body: VerificationOtpDto) => {
-    const data = await AuthService.VerifyOtpService(body);
-    return { data };
+    try {
+      const data = await AuthService.VerifyOtpService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to verify otp: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -112,8 +181,16 @@ export const ResetPassword = api<ResetPasswordDto, ResponseType>(
     path: "/auth-reset-password",
   },
   async (body: ResetPasswordDto) => {
-    const data = await AuthService.ResetPasswordService(body);
-    return { data };
+    try {
+      const data = await AuthService.ResetPasswordService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to reset password: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -124,8 +201,16 @@ export const VerifyAccount = api<VerifyAccountDto, ResponseType>(
     path: "/auth-verify-account",
   },
   async (body: VerifyAccountDto) => {
-    const data = await AuthService.VerifyAccountService(body);
-    return { data };
+    try {
+      const data = await AuthService.VerifyAccountService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to verify account: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -136,7 +221,15 @@ export const SendOtp = api<SendOtpDto, ResponseType>(
     path: "/auth-send-otp",
   },
   async (body: SendOtpDto) => {
-    const data = await AuthService.SendOtpService(body);
-    return { data };
+    try {
+      const data = await AuthService.SendOtpService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to send otp: ${error}`);
+      throw error;
+    }
   }
 );

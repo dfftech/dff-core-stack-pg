@@ -1,4 +1,4 @@
-import type { RequestBodyType } from "../../utils/app-types";
+import type { RequestBodyType } from "dff-util";
 
 export type AppSettingDto = {
   id?: string;

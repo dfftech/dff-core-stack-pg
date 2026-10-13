@@ -1,9 +1,9 @@
-import { LangCountryCode, toEntityMapper, toViewMapper } from "dff-util";
+import { LangCountryCode, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { and, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import type { ResponseType, SearchType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type { LocaleDto } from "./locale.dto";
 import { localeEntity, type LocaleEntity } from "./locale.entity";
+import { AppError } from "../../utils/app-error";
 
 export default class LocaleService {
   static Db() {
@@ -25,11 +25,11 @@ export default class LocaleService {
     } as LocaleEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const rows = await this.Db().select().from(localeEntity).where(eq(localeEntity.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   static SaveValidation(dto: LocaleDto): string | null {
@@ -59,11 +59,11 @@ export default class LocaleService {
     } as LocaleEntity;
   }
 
-  static async SaveService(dto: LocaleDto): Promise<ResponseType> {
+  static async SaveService(dto: LocaleDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
       let entity = this.FromLocale(dto);
       const existing =
         (await this.Db().select().from(localeEntity).where(eq(localeEntity.id, entity.id)).limit(1))[0] ??
@@ -76,7 +76,7 @@ export default class LocaleService {
         entity = inserted ?? entity;
       }
       log.info(`Saved locale: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save locale: ${error}`);
       throw error;
@@ -95,7 +95,7 @@ export default class LocaleService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
@@ -110,7 +110,6 @@ export default class LocaleService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 }

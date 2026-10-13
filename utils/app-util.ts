@@ -20,6 +20,7 @@
       request_id: callMeta.middlewareData?.request_id || "-",
       token: callMeta.middlewareData?.token || undefined,
       tenant_id: callMeta.middlewareData?.tenant_id || undefined,
+      branch_id: callMeta.middlewareData?.branch_id || undefined,
     };
   };
 
@@ -52,6 +53,12 @@
   export const tenant_id = () => {
     const callMeta = currentRequest() as APICallMeta;
     return callMeta.middlewareData?.tenant_id;
+  };
+
+  /** Optional x-branch-id header. */
+  export const branch_id = (): string | undefined => {
+    const callMeta = currentRequest() as APICallMeta;
+    return callMeta.middlewareData?.branch_id;
   };
 
   export const core_db = () => {

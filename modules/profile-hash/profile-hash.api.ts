@@ -1,7 +1,9 @@
 import { api } from "encore.dev/api";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import type { ResponseType, SearchType } from "dff-util";
 import type { ProfileHashDto } from "./profile-hash.dto";
 import ProfileHashService from "./profile-hash.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveProfileHash = api<ProfileHashDto, ResponseType>(
   {
@@ -10,7 +12,16 @@ export const SaveProfileHash = api<ProfileHashDto, ResponseType>(
     path: "/profile-hash-save",
   },
   async (input: ProfileHashDto) => {
-    return await ProfileHashService.SaveService(input);
+    try {
+      const data = await ProfileHashService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save profile hash: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -21,7 +32,16 @@ export const SearchProfileHashes = api<SearchType, ResponseType>(
     path: "/profile-hash-search",
   },
   async (input: SearchType) => {
-    return await ProfileHashService.SearchService(input);
+    try {
+      const page = await ProfileHashService.SearchService(input);
+      return { ...page, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search profile hashes: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -32,6 +52,15 @@ export const EntityByIdProfileHash = api<{ id: string }, ResponseType>(
     path: "/profile-hash-entity/:id",
   },
   async (params: { id: string }) => {
-    return await ProfileHashService.EntityByIdService(params.id);
+    try {
+      const data = await ProfileHashService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id profile hash: ${error}`);
+      throw error;
+    }
   }
 );

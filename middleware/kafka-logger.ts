@@ -28,13 +28,15 @@ export function createKafkaLogger(
   requestId: string,
   traceId?: string,
   sessionUserId?: string,
-  tenantId?: string
+  tenantId?: string,
+  branchId?: string
 ) {
   const baseContext = {
     request_id: requestId,
     trace_id: traceId,
     session_user_id: sessionUserId,
     tenant_id: tenantId,
+    ...(branchId ? { branch_id: branchId } : {}),
     timestamp: new Date().toISOString(),
   };
 
@@ -42,6 +44,7 @@ export function createKafkaLogger(
     request_id: requestId,
     trace_id: traceId,
     tenant_id: tenantId,
+    ...(branchId ? { branch_id: branchId } : {}),
     session_user_id: sessionUserId,
   });
 

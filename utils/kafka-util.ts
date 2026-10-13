@@ -1,7 +1,7 @@
 import log from "encore.dev/log";
 import { Publisher } from 'encore.dev/pubsub';
 import { Kafka, type Producer } from "kafkajs";
-import { PubSubEventType } from './app-types';
+import type { PubSubEventType } from "./app-types";
 import { env } from './app-util';
 
 const KAFKA_BROKERS = env("KAFKA_BROKERS") || "192.168.1.2:29094";

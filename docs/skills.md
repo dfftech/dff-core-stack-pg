@@ -118,7 +118,7 @@ export type PostEntity = typeof postEntity.$inferSelect;
 
 API Layer (Rule 3)
 
-Keep API handlers thin and simple
+Keep API handlers thin. `ResponseType` is used ONLY in `*.api.ts`; services never import it. Every handler has its own inline try/catch (an `AppError` becomes `{ data: null, error: code }`, anything else is logged and rethrown). `meta` is added by `LoggingMiddleware`, not in handlers.
 
 export const SaveUser = api<UserDto, ResponseType>(
   {
@@ -127,7 +127,23 @@ export const SaveUser = api<UserDto, ResponseType>(
     path: "/user-save",
   },
   async (input: UserDto) => {
-    return await UserService.SaveService(input);
+    try {
+      const data = await UserService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) return { data: null, error: error.code };
+      logger().error(`Failed to save user: ${error}`);
+      throw error;
+    }
+  }
+);
+
+export const SearchUsers = api<SearchType, ResponseType>(
+  { expose: true, method: "POST", path: "/user-search" },
+  async (input: SearchType) => {
+    // same try/catch pattern as above
+    const page = await UserService.SearchService(input); // { data, total, skip, limit }
+    return { ...page, status: "LISTED_SUCCESSFULLY" };
   }
 );
 
@@ -138,11 +154,13 @@ export const EntityByIdUser = api<{ id: string }, ResponseType>(
     path: "/user-entity/:id",
   },
   async (params: { id: string }) => {
-    return await UserService.EntityByIdService(params.id);
+    // same try/catch pattern as above
+    const data = await UserService.EntityByIdService(params.id);
+    return { data };
   }
 );
 
-Use unified ResponseType format
+Use unified ResponseType format (built in `api.ts` only)
 
 {
   status?: string | number;
@@ -157,7 +175,7 @@ Use unified ResponseType format
 
 Service Layer (Rule 4)
 
-Service class pattern (static methods only). Use session_db() for tenant DB, core_db() for core/registry. **Every service class must have Db() and EntityService().**
+Service class pattern (static methods only). Services return plain data (entity view, `null`, or `{ data, total, skip, limit }` for search) and throw `AppError(code)` for expected failures; they never use `ResponseType`. Use session_db() for tenant DB, core_db() for core/registry. **Every service class must have Db() and EntityService().**
 
 export default class UserService {
   static Db() {
@@ -170,13 +188,13 @@ export default class UserService {
   }
 
   /** Fetch one entity by id (required). Path param id from API /{module}-entity/:id. */
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const db = this.Db();
     const table = this.EntityService();
     const rows = await db.select().from(table).where(eq(table.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   /** Fills audit fields for Drizzle insert/update. Call before insert or update. */
@@ -196,7 +214,7 @@ export default class UserService {
 
 SaveService example (Drizzle, max 25 lines)
 
-static async SaveService(userDto: UserDto): Promise<ResponseType> {
+static async SaveService(userDto: UserDto) {
   const log = logger();
   try {
     let entity = toEntityMapper(userDto) as UserEntity;
@@ -212,7 +230,7 @@ static async SaveService(userDto: UserDto): Promise<ResponseType> {
     }
     const dto = toViewMapper(entity);
     log.info(`Saved user: ${entity.id}`);
-    return { data: dto };
+    return dto;
   } catch (error) {
     log.error(`Failed to save: ${error}`);
     throw error;
@@ -221,7 +239,7 @@ static async SaveService(userDto: UserDto): Promise<ResponseType> {
 
 static async SaveValidation(dto: UserDto, entity: UserEntity): Promise<UserEntity> {
   if (!entity.name || entity.name === "") {
-    throw new Error("INVALID_USER_NAME");
+    throw new AppError("INVALID_USER_NAME");
   }
   return entity;
 }
@@ -248,7 +266,7 @@ Core Utilities (Rule 6)
 - Core/Registry DB (Drizzle): core_db() — use for shared tables (e.g. tenant registry)
 - Other tenant DB: await get_db(tenantId)
 - Logger: Use logger(), never console.log
-- Session User, Tenant, Request ID: session_user(), tenant_id(), request_id() from app-util
+- Session User, Tenant, Request ID: session_user(), tenant_id(), request_id(), branch_id() (optional x-branch-id header) from app-util
 
 ---
 

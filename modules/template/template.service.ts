@@ -1,6 +1,5 @@
-import { CallHbs, toEntityMapper, toViewMapper } from "dff-util";
+import { CallHbs, toEntityMapper, toViewMapper, type RequestBodyType } from "dff-util";
 import { and, asc, count, desc, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
-import type { RequestBodyType, ResponseType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import { QueryCond, getColumnForTable, toWhereCond } from "../../utils/app-cond";
 import type {
@@ -12,6 +11,7 @@ import {
   templateEntity,
   type TemplateEntity,
 } from "./template.entity";
+import { AppError } from "../../utils/app-error";
 
 const DEFAULT_LANG = "en-US";
 
@@ -38,13 +38,13 @@ export default class TemplateService {
     };
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const db = this.Db();
     const table = this.EntityService();
     const rows = await db.select().from(table).where(eq(table.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: toViewMapper(entity) };
+    if (!entity) return null;
+    return toViewMapper(entity);
   }
 
   /** Resolve by id, then `{name}_{lang}`, then name + lang, then name + en-US. */
@@ -92,11 +92,11 @@ export default class TemplateService {
     return null;
   }
 
-  static async SaveService(dto: TemplateDto): Promise<ResponseType> {
+  static async SaveService(dto: TemplateDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
 
       const mapped = toEntityMapper(dto) as Record<string, unknown>;
       const db = this.Db();
@@ -163,14 +163,14 @@ export default class TemplateService {
       }
 
       log.info(`Saved template: ${entity.id}`);
-      return { data: toViewMapper(entity), status: "SAVED_SUCCESSFULLY" };
+      return toViewMapper(entity);
     } catch (error) {
       log.error(`Failed to save template: ${error}`);
       throw error;
     }
   }
 
-  static async SearchService(input: TemplateSearchRequest): Promise<ResponseType> {
+  static async SearchService(input: TemplateSearchRequest) {
     const db = this.Db();
     const table = this.EntityService();
     const limit = input.limit ?? 10;
@@ -200,20 +200,19 @@ export default class TemplateService {
       total: Number(totalRow?.n ?? 0),
       limit,
       skip,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 
-  static async RenderService(input: TemplateRenderDto): Promise<ResponseType> {
+  static async RenderService(input: TemplateRenderDto) {
     const log = logger();
     try {
-      if (!input.templateId) return { data: null, error: "INVALID_DATA" };
+      if (!input.templateId) throw new AppError("INVALID_DATA");
       const row = await this.FindByNameLangService(input.templateId, input.lang);
-      if (!row?.content) return { data: null, error: "INVALID_DATA" };
+      if (!row?.content) throw new AppError("INVALID_DATA");
 
       const html = await CallHbs(row.content, { data: input.data ?? {} } as RequestBodyType);
       const rendered = Array.isArray(html) ? html.join("") : html;
-      return { data: rendered, status: "RETRIEVED_SUCCESSFULLY" };
+      return rendered;
     } catch (error) {
       log.error(`Failed to render template: ${error}`);
       throw error;

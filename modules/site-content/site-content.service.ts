@@ -1,6 +1,5 @@
 import { AppCodeByType, toViewMapper } from "dff-util";
 import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
-import type { ResponseType } from "../../utils/app-types";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import {
   type SiteContentDto,
@@ -8,6 +7,7 @@ import {
   type SiteContentSearchRequest,
 } from "./site-content.dto";
 import { siteContentEntity, type SiteContentEntity } from "./site-content.entity";
+import { AppError } from "../../utils/app-error";
 
 const DEFAULT_LANG = "en-US";
 const MAX_TYPE_LENGTH = 64;
@@ -37,12 +37,12 @@ export default class SiteContentService {
     return toViewMapper(entity);
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const table = this.EntityService();
     const rows = await this.Db().select().from(table).where(eq(table.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: this.ToView(entity) };
+    if (!entity) return null;
+    return this.ToView(entity);
   }
 
   static NormalizeType(type: unknown): string {
@@ -58,11 +58,11 @@ export default class SiteContentService {
     return null;
   }
 
-  static async SaveService(dto: SiteContentDto): Promise<ResponseType> {
+  static async SaveService(dto: SiteContentDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
       const db = this.Db();
       const table = this.EntityService();
       const type = this.NormalizeType(dto.type);
@@ -89,7 +89,7 @@ export default class SiteContentService {
         entity = inserted ?? entity;
       }
       log.info(`Saved site content: ${entity.id}`);
-      return { data: this.ToView(entity), status: "SAVED_SUCCESSFULLY" };
+      return this.ToView(entity);
     } catch (error) {
       log.error(`Failed to save site content: ${error}`);
       throw error;
@@ -110,7 +110,7 @@ export default class SiteContentService {
     return and(...parts);
   }
 
-  static async SearchService(input: SiteContentSearchRequest): Promise<ResponseType> {
+  static async SearchService(input: SiteContentSearchRequest) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
@@ -131,15 +131,14 @@ export default class SiteContentService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 
   /** Latest active version of `type` for `lang` (default en-US, falls back to en-US). */
-  static async GetService(input: SiteContentGetRequest): Promise<ResponseType> {
+  static async GetService(input: SiteContentGetRequest) {
     const table = this.EntityService();
     const type = this.NormalizeType(input.type);
-    if (!type || type.length > MAX_TYPE_LENGTH) return { data: null, error: "INVALID_SITE_CONTENT_TYPE" };
+    if (!type || type.length > MAX_TYPE_LENGTH) throw new AppError("INVALID_SITE_CONTENT_TYPE");
     const lang = String(input.lang ?? "").trim() || DEFAULT_LANG;
     const db = this.Db();
 
@@ -155,7 +154,7 @@ export default class SiteContentService {
       )[0];
     };
     const entity = (await latest(lang)) ?? (lang !== DEFAULT_LANG ? await latest(DEFAULT_LANG) : undefined);
-    if (!entity) return { data: null };
-    return { data: this.ToView(entity), status: "RETRIEVED_SUCCESSFULLY" };
+    if (!entity) return null;
+    return this.ToView(entity);
   }
 }

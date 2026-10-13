@@ -1,7 +1,7 @@
 import type { Pool } from "pg";
-import { toViewMapper } from "dff-util";
+import { toViewMapper, type SearchType } from "dff-util";
 import { logger, query_params, session_db, session_user } from "./app-util";
-import type { RequestQueryType, SearchType } from "./app-types";
+import type { RequestQueryType } from "./app-types";
 
 /** Session id "System" (case-insensitive) → public access mode. */
 export function isPublicSession(): boolean {

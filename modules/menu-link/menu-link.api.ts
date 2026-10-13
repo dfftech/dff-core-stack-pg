@@ -1,7 +1,9 @@
 import { api } from "encore.dev/api";
-import type { ResponseType } from "../../utils/app-types";
+import type { ResponseType } from "dff-util";
 import type { MenuLinkDto, SearchMenuLinksDto } from "./menu-link.dto";
 import MenuLinkService from "./menu-link.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveMenuLink = api<MenuLinkDto, ResponseType>(
   {
@@ -10,8 +12,16 @@ export const SaveMenuLink = api<MenuLinkDto, ResponseType>(
     path: "/menu-link-save",
   },
   async (body: MenuLinkDto) => {
-    const data = await MenuLinkService.SaveService(body);
-    return { data };
+    try {
+      const data = await MenuLinkService.SaveService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save menu link: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -22,8 +32,16 @@ export const SearchMenuLinks = api<SearchMenuLinksDto, ResponseType>(
     path: "/menu-link-search",
   },
   async (body: SearchMenuLinksDto) => {
-    const result = await MenuLinkService.SearchService(body);
-    return { data: result.data, total: result.total };
+    try {
+      const result = await MenuLinkService.SearchService(body);
+      return { data: result.data, total: result.total };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search menu links: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -34,8 +52,16 @@ export const EntityByIdMenuLink = api<{ id: string }, ResponseType>(
     path: "/menu-link-entity/:id",
   },
   async (params: { id: string }) => {
-    const data = await MenuLinkService.EntityByIdService(params.id);
-    return { data };
+    try {
+      const data = await MenuLinkService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id menu link: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -46,7 +72,15 @@ export const DeleteMenuLink = api<{ id: string }, ResponseType>(
     path: "/menu-link-delete",
   },
   async (body: { id: string }) => {
-    const data = await MenuLinkService.DeleteService(body.id);
-    return { data };
+    try {
+      const data = await MenuLinkService.DeleteService(body.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to delete menu link: ${error}`);
+      throw error;
+    }
   }
 );

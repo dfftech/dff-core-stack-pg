@@ -1,9 +1,9 @@
 import { and, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import { toEntityMapper, toViewMapper } from "dff-util";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import { toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { logger, session_db, session_user } from "../../utils/app-util";
 import type { AppSettingDto } from "./app-setting.dto";
 import { appSettingEntity, type AppSettingEntity } from "./app-setting.entity";
+import { AppError } from "../../utils/app-error";
 
 export default class AppSettingService {
   static Db() {
@@ -29,15 +29,15 @@ export default class AppSettingService {
     return { ...toViewMapper(entity), data: entity.data };
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const rows = await this.Db()
       .select()
       .from(appSettingEntity)
       .where(eq(appSettingEntity.id, id))
       .limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
-    return { data: this.ToView(entity) };
+    if (!entity) return null;
+    return this.ToView(entity);
   }
 
   static async DataByIdService(id: string): Promise<Record<string, unknown>> {
@@ -61,11 +61,11 @@ export default class AppSettingService {
     return null;
   }
 
-  static async SaveService(dto: AppSettingDto): Promise<ResponseType> {
+  static async SaveService(dto: AppSettingDto) {
     const log = logger();
     try {
       const invalid = this.SaveValidation(dto);
-      if (invalid) return { data: null, error: invalid };
+      if (invalid) throw new AppError(invalid);
 
       const id = dto.id || `${dto.type}_${dto.code}`;
       const { data: settingData, ...rest } = dto;
@@ -91,7 +91,7 @@ export default class AppSettingService {
         entity = inserted ?? entity;
       }
       log.info(`Saved app setting: ${entity.id}`);
-      return { data: this.ToView(entity), status: "SAVED_SUCCESSFULLY" };
+      return this.ToView(entity);
     } catch (error) {
       log.error(`Failed to save app setting: ${error}`);
       throw error;
@@ -122,7 +122,7 @@ export default class AppSettingService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     const db = this.Db();
     const table = this.EntityService();
     const where = this.buildSearchWhere(input);
@@ -143,7 +143,6 @@ export default class AppSettingService {
       total: Number(totalRow[0]?.value ?? 0),
       skip,
       limit,
-      status: "LISTED_SUCCESSFULLY",
     };
   }
 }

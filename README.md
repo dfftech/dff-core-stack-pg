@@ -2,7 +2,9 @@
 
 Encore.ts + Drizzle (PostgreSQL) core stack. Utils come from **dff-util** (`CallHbs`, `CallLangText`, `LangCountryCode`, mappers).
 
-Typical headers: `Authorization: Bearer <jwt>`, `x-tenant-id: <tenant>`.
+Typical headers: `Authorization: Bearer <jwt>`, `x-tenant-id: <tenant>`, optional `x-branch-id: <branch>` (read in `LoggingMiddleware`, logged as `branch_id`, available via `branch_id()` from `utils/app-util`, forwarded by `AppHttp`).
+
+Every successful response is a `ResponseType` from `dff-util` and carries `meta`: `{ requestId, timestamp, duration }` (`duration` in milliseconds). `LoggingMiddleware` adds it to every response (handlers do not build it); a `meta` value a handler sets itself, such as `requestId` in `query-report`, is kept. `ResponseType` is built only in `*.api.ts` (each handler has its own try/catch); services return plain data and throw `AppError(code)` for expected failures.
 
 REST Client request files live under `docs/rest/` (one `.rest` file per module).
 

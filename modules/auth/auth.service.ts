@@ -1,13 +1,5 @@
 import { eq } from "drizzle-orm";
-import {
-  AppCodeByType,
-  ConstKeys,
-  ConstMessages,
-  EncodeBase64,
-  JwtEncode,
-  toViewMapper,
-} from "dff-util";
-import type { RequestBodyType, ResponseType, SearchType } from "../../utils/app-types";
+import { AppCodeByType, ConstKeys, ConstMessages, EncodeBase64, JwtEncode, toViewMapper, type RequestBodyType, type SearchType } from "dff-util";
 import { env, logger, session_user } from "../../utils/app-util";
 import ProfileHashService from "../profile-hash/profile-hash.service";
 import ProfileService from "../profile/profile.service";
@@ -42,16 +34,15 @@ export default class AuthService {
     return authEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     return ProfileService.EntityByIdService(id);
   }
 
-  static async SaveService(dto: SignupDto): Promise<ResponseType> {
-    const data = await this.SignupService(dto);
-    return { data };
+  static async SaveService(dto: SignupDto) {
+    return this.SignupService(dto);
   }
 
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     return ProfileService.SearchService(input);
   }
 
@@ -66,7 +57,7 @@ export default class AuthService {
     if (idType === "email") return ProfileService.FindByEmailService(userid) as Promise<AuthProfile | null>;
     if (idType === "mobile") return ProfileService.FindByMobileService(userid) as Promise<AuthProfile | null>;
     const res = await ProfileService.EntityByIdService(userid);
-    return (res.data as AuthProfile) ?? null;
+    return (res as AuthProfile) ?? null;
   }
 
   static async generateJwtToken(profile: AuthProfile): Promise<string> {
@@ -146,7 +137,7 @@ export default class AuthService {
       provider: dto.provider || "password",
     });
 
-    const profile = saved.data as AuthProfile;
+    const profile = saved as AuthProfile;
     const otpRes = await this.issueOtp(dto.userid, profile.name, {
       lang: dto.lang?.[0],
       templateId: "otp-email",
@@ -172,7 +163,7 @@ export default class AuthService {
     try {
       const branding = await AppSettingService.DataByIdService("branding_company");
       const logoUrl = settingText(branding, "logo_url");
-      const sent = await MailService.SendService({
+      await MailService.SendService({
         templateId,
         lang: lang || "en-US",
         to,
@@ -181,7 +172,6 @@ export default class AuthService {
           ...data,
         },
       });
-      if (sent.error) log.error(`Auth mail not sent (${templateId})`, { to, error: sent.error });
     } catch (error) {
       log.error(`Auth mail failed (${templateId}): ${error}`);
     }
@@ -343,7 +333,7 @@ export default class AuthService {
         password: EncodeBase64(dto.email),
         provider: "google",
       });
-      user = saved.data as AuthProfile;
+      user = saved as AuthProfile;
     }
 
     const token = await this.generateJwtToken(user);

@@ -5,8 +5,7 @@ import {
   randomBytes,
 } from "node:crypto";
 import { and, count, eq, ilike, sql, type SQL } from "drizzle-orm";
-import { DecodeBase64, toEntityMapper, toViewMapper } from "dff-util";
-import type { ResponseType, SearchType } from "../../utils/app-types";
+import { DecodeBase64, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { env, logger, session_db, session_user } from "../../utils/app-util";
 import type { ProfileHashDto } from "./profile-hash.dto";
 import { profileHashEntity, type ProfileHashEntity } from "./profile-hash.entity";
@@ -59,16 +58,16 @@ export default class ProfileHashService {
     } as ProfileHashEntity;
   }
 
-  static async EntityByIdService(id: string): Promise<ResponseType> {
+  static async EntityByIdService(id: string) {
     const db = this.Db();
     const table = this.EntityService();
     const rows = await db.select().from(table).where(eq(table.id, id)).limit(1);
     const entity = rows[0];
-    if (!entity) return { data: null };
+    if (!entity) return null;
     const view = toViewMapper(entity) as Record<string, unknown>;
     delete view.hashData;
     delete view.hashSalt;
-    return { data: view };
+    return view;
   }
 
   static async SaveValidation(
@@ -106,7 +105,7 @@ export default class ProfileHashService {
     return { ...entity, ...hashed };
   }
 
-  static async SaveService(dto: ProfileHashDto): Promise<ResponseType> {
+  static async SaveService(dto: ProfileHashDto) {
     const log = logger();
     try {
       const { password: _pw, ...rest } = dto;
@@ -127,7 +126,7 @@ export default class ProfileHashService {
       const view = toViewMapper(entity) as Record<string, unknown>;
       delete view.hashData;
       delete view.hashSalt;
-      return { data: view };
+      return view;
     } catch (error) {
       log.error(`Failed to save profile hash: ${error}`);
       throw error;
@@ -163,7 +162,7 @@ export default class ProfileHashService {
     return parts.length ? and(...parts) : undefined;
   }
 
-  static async SearchService(input: SearchType): Promise<ResponseType> {
+  static async SearchService(input: SearchType) {
     const log = logger();
     const db = this.Db();
     const table = this.EntityService();

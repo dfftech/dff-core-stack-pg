@@ -1,23 +1,23 @@
-import { CallHbs } from "dff-util";
-import type { RequestBodyType, ResponseType } from "../../utils/app-types";
+import { CallHbs, type RequestBodyType } from "dff-util";
+import { AppError } from "../../utils/app-error";
 import { logger } from "../../utils/app-util";
 import TemplateService from "../template/template.service";
 import type { MailSendDto } from "./mail.dto";
 import { MailHelper } from "./mail.helper";
 
 export default class MailService {
-  static async SendService(input: MailSendDto): Promise<ResponseType> {
+  static async SendService(input: MailSendDto) {
     const log = logger();
     try {
       if (!input.templateId || !input.to) {
-        return { data: null, error: "INVALID_DATA" };
+        throw new AppError("INVALID_DATA");
       }
 
       const row = await TemplateService.FindByNameLangService(
         input.templateId,
         input.lang
       );
-      if (!row?.content) return { data: null, error: "INVALID_DATA" };
+      if (!row?.content) throw new AppError("INVALID_DATA");
 
       const html = await CallHbs(row.content, { data: input.data ?? {} } as RequestBodyType);
       const rendered = Array.isArray(html) ? html.join("") : String(html);
@@ -26,7 +26,7 @@ export default class MailService {
         const sub = await CallHbs(subject, { data: input.data ?? {} } as RequestBodyType);
         subject = Array.isArray(sub) ? sub.join("") : String(sub);
       }
-      if (!subject) return { data: null, error: "INVALID_DATA" };
+      if (!subject) throw new AppError("INVALID_DATA");
 
       const result = await MailHelper.SendMail(
         input.to,
@@ -35,13 +35,11 @@ export default class MailService {
         input.attachments ?? []
       );
       log.info(`Sent mail to ${input.to} using template ${row.id}`);
-      return { data: result, status: "EMAIL_SENT_SUCCESSFULLY" };
+      return result;
     } catch (error) {
       log.error(`Failed to send mail: ${error}`);
       const message = error instanceof Error ? error.message : String(error);
-      if (message === "MAIL_NOT_CONFIGURED") {
-        return { data: null, error: message };
-      }
+      if (message === "MAIL_NOT_CONFIGURED") throw new AppError(message);
       throw error;
     }
   }

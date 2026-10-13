@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import type { ResponseType } from "../../utils/app-types";
+import type { ResponseType } from "dff-util";
 import type {
   TranslationDataDto,
   TranslationDto,
@@ -9,6 +9,8 @@ import type {
   TranslationTextDto,
 } from "./translation.dto";
 import TranslationService from "./translation.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveTranslation = api<TranslationDto, ResponseType>(
   {
@@ -17,7 +19,16 @@ export const SaveTranslation = api<TranslationDto, ResponseType>(
     path: "/translation-save",
   },
   async (input) => {
-    return TranslationService.SaveService(input);
+    try {
+      const data = await TranslationService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save translation: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -28,7 +39,16 @@ export const SearchTranslations = api<TranslationSearchDto, ResponseType>(
     path: "/translation-search",
   },
   async (input) => {
-    return TranslationService.SearchService(input);
+    try {
+      const page = await TranslationService.SearchService(input);
+      return { ...page, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search translations: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -39,7 +59,16 @@ export const DataTranslation = api<TranslationDataDto, ResponseType>(
     path: "/translation-data",
   },
   async (input) => {
-    return TranslationService.DataService(input);
+    try {
+      const data = await TranslationService.DataService(input);
+      return { data, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to data translation: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -50,7 +79,16 @@ export const LangTranslation = api<TranslationLangDto, ResponseType>(
     path: "/translation-lang",
   },
   async (input) => {
-    return TranslationService.LangService(input);
+    try {
+      const data = await TranslationService.LangService(input);
+      return { data, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to lang translation: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -61,7 +99,16 @@ export const EntityByIdTranslation = api<{ id: string }, ResponseType>(
     path: "/translation-entity/:id",
   },
   async (params) => {
-    return TranslationService.EntityByIdService(params.id);
+    try {
+      const data = await TranslationService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id translation: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -72,7 +119,16 @@ export const TextTranslation = api<TranslationTextDto, ResponseType>(
     path: "/translation-text",
   },
   async (input) => {
-    return TranslationService.TextService(input);
+    try {
+      const data = await TranslationService.TextService(input);
+      return { data, status: "TRANSLATED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to text translation: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -83,7 +139,16 @@ export const MapTranslation = api<{ lang: string }, ResponseType>(
     path: "/translation-map/:lang",
   },
   async (params) => {
-    return TranslationService.MapService(params.lang);
+    try {
+      const data = await TranslationService.MapService(params.lang);
+      return { data, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to map translation: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -94,6 +159,15 @@ export const FillTranslation = api<TranslationFillDto, ResponseType>(
     path: "/translation-fill",
   },
   async (input) => {
-    return TranslationService.FillService(input);
+    try {
+      const data = await TranslationService.FillService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to fill translation: ${error}`);
+      throw error;
+    }
   }
 );

@@ -1,5 +1,5 @@
 import { api } from "encore.dev/api";
-import type { ResponseType } from "../../utils/app-types";
+import type { ResponseType } from "dff-util";
 import type {
   BulkCreateMenuAccessDto,
   CheckAccessDto,
@@ -7,6 +7,8 @@ import type {
   SearchMenuAccessDto,
 } from "./menu-access.dto";
 import MenuAccessService from "./menu-access.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveMenuAccess = api<MenuAccessDto, ResponseType>(
   {
@@ -15,8 +17,16 @@ export const SaveMenuAccess = api<MenuAccessDto, ResponseType>(
     path: "/menu-access-save",
   },
   async (body: MenuAccessDto) => {
-    const data = await MenuAccessService.SaveService(body);
-    return { data };
+    try {
+      const data = await MenuAccessService.SaveService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save menu access: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -27,8 +37,16 @@ export const SearchMenuAccess = api<SearchMenuAccessDto, ResponseType>(
     path: "/menu-access-search",
   },
   async (body: SearchMenuAccessDto) => {
-    const result = await MenuAccessService.SearchService(body);
-    return { data: result.data, total: result.total };
+    try {
+      const result = await MenuAccessService.SearchService(body);
+      return { data: result.data, total: result.total };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search menu access: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -39,8 +57,16 @@ export const EntityByIdMenuAccess = api<{ id: string }, ResponseType>(
     path: "/menu-access-entity/:id",
   },
   async (params: { id: string }) => {
-    const data = await MenuAccessService.EntityByIdService(params.id);
-    return { data };
+    try {
+      const data = await MenuAccessService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id menu access: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -51,8 +77,16 @@ export const BulkCreateMenuAccess = api<BulkCreateMenuAccessDto, ResponseType>(
     path: "/menu-access-bulk-create",
   },
   async (body: BulkCreateMenuAccessDto) => {
-    const data = await MenuAccessService.BulkCreateMenuAccessService(body);
-    return { data };
+    try {
+      const data = await MenuAccessService.BulkCreateMenuAccessService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to bulk create menu access: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -63,8 +97,16 @@ export const CheckAccess = api<CheckAccessDto, ResponseType>(
     path: "/menu-access-check-access",
   },
   async (body: CheckAccessDto) => {
-    const data = await MenuAccessService.CheckAccessService(body);
-    return { data };
+    try {
+      const data = await MenuAccessService.CheckAccessService(body);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to check access: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -75,7 +117,15 @@ export const DeleteMenuAccess = api<{ id: string }, ResponseType>(
     path: "/menu-access-delete",
   },
   async (body: { id: string }) => {
-    const data = await MenuAccessService.DeleteService(body.id);
-    return { data };
+    try {
+      const data = await MenuAccessService.DeleteService(body.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to delete menu access: ${error}`);
+      throw error;
+    }
   }
 );

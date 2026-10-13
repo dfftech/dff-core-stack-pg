@@ -1,11 +1,13 @@
 import { api } from "encore.dev/api";
-import type { ResponseType } from "../../utils/app-types";
+import type { ResponseType } from "dff-util";
 import type {
   TemplateDto,
   TemplateRenderDto,
   TemplateSearchRequest,
 } from "./template.dto";
 import TemplateService from "./template.service";
+import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/app-util";
 
 export const SaveTemplate = api<TemplateDto, ResponseType>(
   {
@@ -14,7 +16,16 @@ export const SaveTemplate = api<TemplateDto, ResponseType>(
     path: "/template-save",
   },
   async (input) => {
-    return TemplateService.SaveService(input);
+    try {
+      const data = await TemplateService.SaveService(input);
+      return { data, status: "SAVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to save template: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -25,7 +36,16 @@ export const SearchTemplates = api<TemplateSearchRequest, ResponseType>(
     path: "/template-search",
   },
   async (input) => {
-    return TemplateService.SearchService(input);
+    try {
+      const page = await TemplateService.SearchService(input);
+      return { ...page, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to search templates: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -36,7 +56,16 @@ export const EntityByIdTemplate = api<{ id: string }, ResponseType>(
     path: "/template-entity/:id",
   },
   async (params) => {
-    return TemplateService.EntityByIdService(params.id);
+    try {
+      const data = await TemplateService.EntityByIdService(params.id);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to entity by id template: ${error}`);
+      throw error;
+    }
   }
 );
 
@@ -47,6 +76,15 @@ export const RenderTemplate = api<TemplateRenderDto, ResponseType>(
     path: "/template-render",
   },
   async (input) => {
-    return TemplateService.RenderService(input);
+    try {
+      const data = await TemplateService.RenderService(input);
+      return { data, status: "RETRIEVED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to render template: ${error}`);
+      throw error;
+    }
   }
 );

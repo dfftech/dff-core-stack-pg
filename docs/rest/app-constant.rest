@@ -1,0 +1,36 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+
+### 1. App Constant Save
+POST {{hosturl}}/app-constant-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "persona",
+  "code": "admin",
+  "name": "Admin",
+  "active": true,
+  "data": { "en-US": "Admin" }
+}
+
+### 2. App Constant Entity
+GET {{hosturl}}/app-constant-entity/persona_admin
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. App Constant Search
+POST {{hosturl}}/app-constant-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "searchTerm": "admin",
+  "limit": 10,
+  "skip": 0,
+  "filters": "{\"type\":\"persona\"}"
+}

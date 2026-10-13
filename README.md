@@ -48,6 +48,16 @@ CRUD:
 
 `id` is always `{type}_{code}` (e.g. `integration_smtp`). Fill `data` JSON; do not hardcode secrets in code.
 
+## App constants
+
+Lookup values (persona, language, order status, ...) stored in `app_constants`. Same shape as app settings, without `is_public`.
+
+- `POST /app-constant-save`
+- `POST /app-constant-search` (`filters`: `{"type":"persona"}`, `{"code":"admin"}`)
+- `GET /app-constant-entity/:id`
+
+`id` is always `{type}_{code}` (e.g. `persona_admin`, `active_status_true`); a save with a different `id` returns `INVALID_CONSTANT_ID`. `data` holds the per-language labels, e.g. `{"en-US":"Admin"}`.
+
 | Setting id | Used by |
 | --- | --- |
 | `integration_smtp` | `POST /mail-send` (nodemailer) |
@@ -244,4 +254,4 @@ Response `data` is a menu tree sorted by `priority`:
 
 One file per module in `docs/rest/` for the VS Code REST Client extension. Set `@hosturl`, `@authToken` and `@xTenantId` at the top of a file, then use "Send Request" above each `###` block.
 
-`docs/rest/address.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`.
+`docs/rest/address.rest`, `docs/rest/app-constant.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`.

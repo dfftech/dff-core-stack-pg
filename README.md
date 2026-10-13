@@ -45,6 +45,7 @@ CRUD:
 - `POST /app-setting-save`
 - `POST /app-setting-search`
 - `GET /app-setting-entity/:id`
+- `GET /app-setting-type/:type` (all active rows of one type, ordered by code)
 
 `id` is always `{type}_{code}` (e.g. `integration_smtp`). Fill `data` JSON; do not hardcode secrets in code.
 
@@ -55,6 +56,7 @@ Lookup values (persona, language, order status, ...) stored in `app_constants`. 
 - `POST /app-constant-save`
 - `POST /app-constant-search` (`filters`: `{"type":"persona"}`, `{"code":"admin"}`)
 - `GET /app-constant-entity/:id`
+- `GET /app-constant-type/:type` (all active rows of one type, ordered by code)
 
 `id` is always `{type}_{code}` (e.g. `persona_admin`, `active_status_true`); a save with a different `id` returns `INVALID_CONSTANT_ID`. `data` holds the per-language labels, e.g. `{"en-US":"Admin"}`.
 

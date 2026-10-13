@@ -55,6 +55,19 @@ export default class AppConstantService {
     return {};
   }
 
+  /** All active rows of one type, ordered by code. */
+  static async TypeService(type: string) {
+    const table = this.EntityService();
+    const value = String(type ?? "").trim();
+    if (!value) throw new AppError("INVALID_CONSTANT_TYPE");
+    const rows = await this.Db()
+      .select()
+      .from(table)
+      .where(and(eq(table.type, value), eq(table.active, true)))
+      .orderBy(sql`${table.code} ASC`);
+    return rows.map((r: AppConstantEntity) => this.ToView(r));
+  }
+
   static SaveValidation(dto: AppConstantDto): string | null {
     if (!dto.type) return "INVALID_CONSTANT_TYPE";
     if (!dto.code) return "INVALID_CONSTANT_CODE";

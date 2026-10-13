@@ -43,3 +43,8 @@ Content-Type: application/json
   "skip": 0,
   "filters": "{\"type\":\"branding\"}"
 }
+
+### 4. App Setting By Type
+GET {{hosturl}}/app-setting-type/integration
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

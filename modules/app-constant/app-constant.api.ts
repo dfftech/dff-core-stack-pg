@@ -64,3 +64,23 @@ export const EntityByIdAppConstant = api<{ id: string }, ResponseType>(
     }
   }
 );
+
+export const TypeAppConstant = api<{ type: string }, ResponseType>(
+  {
+    expose: true,
+    method: "GET",
+    path: "/app-constant-type/:type",
+  },
+  async (params) => {
+    try {
+      const data = await AppConstantService.TypeService(params.type);
+      return { data, total: data.length, status: "LISTED_SUCCESSFULLY" };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to list app constant by type: ${error}`);
+      throw error;
+    }
+  }
+);

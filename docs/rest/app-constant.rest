@@ -34,3 +34,8 @@ Content-Type: application/json
   "skip": 0,
   "filters": "{\"type\":\"persona\"}"
 }
+
+### 4. App Constant By Type
+GET {{hosturl}}/app-constant-type/persona
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

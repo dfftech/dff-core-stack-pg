@@ -55,6 +55,19 @@ export default class AppSettingService {
     return {};
   }
 
+  /** All active rows of one type, ordered by code. */
+  static async TypeService(type: string) {
+    const table = this.EntityService();
+    const value = String(type ?? "").trim();
+    if (!value) throw new AppError("INVALID_SETTING_TYPE");
+    const rows = await this.Db()
+      .select()
+      .from(table)
+      .where(and(eq(table.type, value), eq(table.active, true)))
+      .orderBy(sql`${table.code} ASC`);
+    return rows.map((r: AppSettingEntity) => this.ToView(r));
+  }
+
   static SaveValidation(dto: AppSettingDto): string | null {
     if (!dto.type) return "INVALID_SETTING_TYPE";
     if (!dto.code) return "INVALID_SETTING_CODE";

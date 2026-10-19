@@ -1,0 +1,60 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken =
+@xTenantId = local
+@uploadId = PASTE_data.id_FROM_SAVE
+
+### 1. Upload File Save
+# FE flow: GET /sss-url (type mandatory) -> PUT bytes to `data.upload` -> POST here
+# with the public `data.download` as `url` and the `data.provider` / `data.type`
+# returned by sss (provider is `{tenant}-{branch}`, each defaulting to "admin").
+POST {{hosturl}}/upload-file-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "name": "JetBrainMonoFont.png",
+  "url": "https://bucket.s3.amazonaws.com/local/local-admin/test-application/JetBrainMonoFont-uuid.png",
+  "type": "Test-Application",
+  "provider": "TEST"
+}
+
+### 2. Upload File Entity
+GET {{hosturl}}/upload-file-entity/{{uploadId}}
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+
+### 3. Upload File Search
+POST {{hosturl}}/upload-file-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "provider": "local-admin",
+  "type": "Test-Application",
+  "limit": 10,
+  "skip": 0
+}
+
+### 4. Upload File Status
+POST {{hosturl}}/upload-file-status
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "{{uploadId}}",
+  "status": "inactive"
+}
+
+### 5. Upload File Delete
+POST {{hosturl}}/upload-file-delete
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "{{uploadId}}"
+}

@@ -11,8 +11,8 @@ Do **not** hardcode SMTP/S3 secrets. Mail and sss read:
 | Setting id | Used by |
 | --- | --- |
 | `integration_smtp` | `POST /mail-send` (nodemailer) |
-| `integration_s3_public` | `GET /sss-url?fileName=` public upload + download |
-| `integration_s3_private` | `GET /sss-url?fileName=&private=true&type=` signed upload + download (optional type → kebab-case folder) |
+| `integration_s3_public` | `GET /sss-url?fileName=&type=` public upload + download |
+| `integration_s3_private` | `GET /sss-url?fileName=&private=true&type=` signed upload + download (`type` mandatory; `provider` from tenant/branch headers → kebab-case folders) |
 
 Fill rows in `app_settings` (query-load `SETTING_SMTP` / `SETTING_S3_PUBLIC` / `SETTING_S3_PRIVATE`). Env `CORE_MAIL_*` is only a fallback if SMTP username/password are empty.
 
@@ -93,8 +93,26 @@ The **auth** module sends mail when `userid` is an email:
 
 ### sss
 
-`GET /sss-url?fileName=` — public (`integration_s3_public`). `GET /sss-url?fileName=&private=true&type=Profile Photos` — private (`integration_s3_private`); optional `type` is converted with `toKebabCase` (dff-util) and added as a folder. Empty `type` → `assets` folder. Public/private is decided only by `private`. Public download is `base_url` or Encore `publicUrl`. Private download is a signed GET. Key is `{setting folder}/{kebab-type}/{name}-{uuid}{ext}`.
+Module: `modules/sss` (`sss.api.ts` / `sss.service.ts` / `sss.helper.ts` / `sss.bucket.ts` / `sss.dto.ts`).
+
+- `GET /sss-url?fileName=&type=&private=` — `SssUrl` API → `SssService.UrlService`. `fileName` and `type` are **mandatory**; `private` is optional (default `false`).
+
+**provider** is *not* a query param. `SssService.Provider()` builds it as `{tenant}-{branch}` from the `x-tenant-id` / `x-branch-id` headers (`tenant_id()` / `branch_id()` in `utils/app-util`); each part falls back to `admin` when the header is missing — e.g. no headers → `admin-admin`.
+
+`GET /sss-url?fileName=&type=` — public (`integration_s3_public`). `GET /sss-url?fileName=&private=true&type=Profile Photos` — private (`integration_s3_private`); `provider` and `type` are converted with `toKebabCase` (dff-util) and added as folders. Public/private is decided only by `private`. Public download is `base_url` or Encore `publicUrl`. Private download is a signed GET. Key is `{setting folder}/{kebab-provider}/{kebab-type}/{name}-{uuid}{ext}`. Response `data`: `{ upload, download, key, access, provider, type }` — pass `provider`/`type` straight to `POST /upload-file-save`.
+
+### upload-file
+
+Module: `modules/upload-file` (`upload-file.api.ts` / `upload-file.service.ts` / `upload-file.entity.ts` / `upload-file.dto.ts`). Table `upload_files`.
+
+FE flow: `GET /sss-url` (`type` mandatory) → PUT bytes to `data.upload` → `POST /upload-file-save` with the public `data.download` as `url` and the `data.provider` / `data.type` returned by sss.
+
+- `POST /upload-file-save` `{ id?, name, url, status?, type, provider, active? }` — `type` and `provider` are **mandatory**. `id` defaults to `${provider}-${type}-${name}-${random}` (built via `UploadFileService.BuildId` / dff-util `AppRandomString`) when omitted.
+- `GET /upload-file-entity/:id`
+- `POST /upload-file-search` body `{ provider?, type?, status?, active?, limit, skip }`
+- `POST /upload-file-status` `{ id, status }`
+- `POST /upload-file-delete` `{ id }`
 
 ## REST Client
 
-Requests are in `docs/rest/template.rest`, `docs/rest/mail.rest` and `docs/rest/sss.rest` using `{{hosturl}}`, `{{authToken}}` and `{{xTenantId}}`.
+Requests are in `docs/rest/template.rest`, `docs/rest/mail.rest`, `docs/rest/sss.rest` and `docs/rest/upload-file.rest` using `{{hosturl}}`, `{{authToken}}` and `{{xTenantId}}`.

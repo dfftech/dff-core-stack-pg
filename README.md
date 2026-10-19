@@ -63,8 +63,8 @@ Lookup values (persona, language, order status, ...) stored in `app_constants`. 
 | Setting id | Used by |
 | --- | --- |
 | `integration_smtp` | `POST /mail-send` (nodemailer) |
-| `integration_s3_public` | `GET /sss-url?fileName=` |
-| `integration_s3_private` | `GET /sss-url?fileName=&private=true&type=` (optional type → kebab-case folder) |
+| `integration_s3_public` | `GET /sss-url?fileName=&type=` |
+| `integration_s3_private` | `GET /sss-url?fileName=&private=true&type=` (`type` mandatory; `provider` from tenant/branch headers → kebab-case folders) |
 | `branding_company` | Auth emails (`logo_url`, app/company name) |
 
 ### SMTP (`integration_smtp` `data`)
@@ -228,15 +228,29 @@ OTP CRUD: `POST /otp-verification-save`, `POST /otp-verification-search`, `GET /
 
 ## S3 / SSS
 
-`GET /sss-url?fileName=jwt.png` — public (`integration_s3_public`).  
-`GET /sss-url?fileName=jwt.png&private=true&type=Profile Photos` — private (`integration_s3_private`), key `{folder}/profile-photos/jwt-{uuid}.png`. `type` is optional; when empty the folder is `assets`.
+`GET /sss-url?fileName=jwt.png&type=Assets` — public (`integration_s3_public`).
+`GET /sss-url?fileName=jwt.png&private=true&type=Profile Photos` — private (`integration_s3_private`), key `{folder}/acme-main/profile-photos/jwt-{uuid}.png`. `type` is **mandatory**.
+
+`provider` is not a query param: it is `{tenant}-{branch}` from the `x-tenant-id` / `x-branch-id` headers (`tenant_id()` / `branch_id()` in `utils/app-util`), each defaulting to `admin` — so no headers gives `admin-admin`. It is returned in the response so it can be posted to `/upload-file-save`.
 
 | | Public | Private |
 | --- | --- | --- |
 | Upload | signed PUT | signed PUT |
 | Download | `base_url` or Encore `publicUrl` | signed GET (`expires`) |
 
-Object key: `{folder}/{name}-{uuid}{ext}` (folder often `local`).
+Object key: `{folder}/{kebab-provider}/{kebab-type}/{name}-{uuid}{ext}`.
+
+---
+
+## Upload file
+
+Table `upload_files` (`modules/upload-file`). Flow: `GET /sss-url` → PUT bytes to `data.upload` → `POST /upload-file-save` with the public `data.download` as `url` plus the `data.provider` / `data.type` returned by sss.
+
+- `POST /upload-file-save` `{ id?, name, url, status?, type, provider, active? }` — `type` and `provider` are **mandatory**; `id` defaults to `{provider}-{type}-{name}-{random}`.
+- `GET /upload-file-entity/:id`
+- `POST /upload-file-search` `{ provider?, type?, status?, active?, limit, skip }`
+- `POST /upload-file-status` `{ id, status }`
+- `POST /upload-file-delete` `{ id }`
 
 ---
 
@@ -256,4 +270,4 @@ Response `data` is a menu tree sorted by `priority`:
 
 One file per module in `docs/rest/` for the VS Code REST Client extension. Set `@hosturl`, `@authToken` and `@xTenantId` at the top of a file, then use "Send Request" above each `###` block.
 
-`docs/rest/address.rest`, `docs/rest/app-constant.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`.
+`docs/rest/address.rest`, `docs/rest/app-constant.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`, `docs/rest/upload-file.rest`.

@@ -3,7 +3,7 @@ export type MenuLinkDto = {
   active?: boolean;
   href: string;
   icon: string;
-  menuGroupId: string;
+  menuGroupId?: string;
   name?: string;
   nameLang: Record<string, string>;
   priority: number;

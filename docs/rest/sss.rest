@@ -3,12 +3,12 @@
 @authToken =
 @xTenantId = local
 @xBranchId = test
-@uploadUrl = PASTE_data.upload_FROM_SSS_URL
+@uploadUrl = https://dtf-boltnbolt-nprd.s3.ca-central-1.amazonaws.com/local/test/test/0001-b29c01c3-5c84-4eeb-a655-55ae77ad1c9d.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAXNMCEQCQNHORYQ64%2F20261021%2Fca-central-1%2Fs3%2Faws4_request&X-Amz-Date=20261021T043043Z&X-Amz-Expires=300&X-Amz-SignedHeaders=host&X-Amz-Signature=6f3d1bbe9e72b68c9122a5ac9069c873ed7bf5c392a40d77d2578cd19da218f9
 
 ### 1. Sss Url Public
 # `type` is mandatory — appended to the object key. `provider` is derived
 # server-side from x-tenant-id/x-branch-id headers (each defaults to "admin").
-GET {{hosturl}}/sss-url?fileName=JetBrainMonoFont.png&type=Test-Application
+GET {{hosturl}}/sss-url?fileName=0001.png&type=profile
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
 x-branch-id: {{xBranchId}}
@@ -26,4 +26,4 @@ x-branch-id: {{xBranchId}}
 PUT {{uploadUrl}}
 
 # Replace with the file to upload
-< ./file.png
+< ./0001.png

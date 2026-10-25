@@ -18,8 +18,7 @@ Content-Type: application/json
     "messageAbove": "Your one-time password is:",
     "messageBelow": "Do not share this code with anyone. It expires soon."
   },
-  "to": "admin@example.com",
-  "attachments": ["https://www.w3.org/Icons/w3c_home.png"]
+  "to": "noreply@dfftech.com"
 }
 
 ### 2. Mail Send Reset Password Success
@@ -36,6 +35,11 @@ Content-Type: application/json
     "messageAbove": "Your password was reset successfully.",
     "messageBelow": "If you did not change your password, contact support immediately."
   },
-  "to": "admin@example.com",
-  "attachments": ["https://www.w3.org/Icons/w3c_home.png"]
+  "to": "noreply@dfftech.com",
+  "attachments": [
+    {
+      "path": "https://www.w3.org/Icons/w3c_home.png",
+      "cid": "logo.img"
+    }
+  ]
 }

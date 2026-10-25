@@ -14,4 +14,3 @@ export interface MenuLinksData {
   updatedAt: Date;
   updatedBy: string;
 }
-

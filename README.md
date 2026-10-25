@@ -173,7 +173,7 @@ Pass `{ "lang": "en-US" }` to return only that locale.
 
 ## Templates and mail
 
-Table `templates`: one row per **name + lang**. Render uses `CallHbs` with `{ data: payload }`. Lookup: id → `{name}_{lang}` → `{name}_en-US`.
+Table `templates`: one row per **name + lang**. Render uses `CallHbs` with `{ data: payload }`. Lookup: id → `{name}_{lang}` → `{name}_en-US`. The rendered template content is treated as **Markdown** and converted to HTML with `marked` before being sent.
 
 | Method | Path |
 | --- | --- |
@@ -182,6 +182,8 @@ Table `templates`: one row per **name + lang**. Render uses `CallHbs` with `{ da
 | GET | `/template-entity/:id` |
 | POST | `/template-render` `{ templateId, lang?, data }` |
 | POST | `/mail-send` `{ templateId, lang?, data, to, subject?, attachments }` |
+
+`attachments` is an array of `{ path, cid?, filename? }`. `path` may be a local file path or an `http(s)://` URL (mapped to nodemailer's `href`). `cid` is optional and lets the attachment be referenced inline in the template via `<img src="cid:...">`.
 
 Seeded templates:
 
@@ -199,7 +201,7 @@ OTP email: optional `messageAbove` / `messageBelow` (or `smsStartMessage` / `sms
   "lang": "en-US",
   "to": "admin@example.com",
   "data": { "otp": "500827", "logoUrl": "https://www.w3.org/Icons/w3c_home.png" },
-  "attachments": ["https://www.w3.org/Icons/w3c_home.png"]
+  "attachments": [{ "path": "https://www.w3.org/Icons/w3c_home.png", "cid": "logo.img" }]
 }
 ```
 

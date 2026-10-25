@@ -21,4 +21,3 @@ export type SearchMenuLinksDto = {
   orderBy?: string;
   order?: 'ASC' | 'DESC';
 };
-

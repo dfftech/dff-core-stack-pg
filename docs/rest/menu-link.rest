@@ -20,12 +20,29 @@ Content-Type: application/json
   "active": true
 }
 
-### 2. Menu Link Entity
+### 2. Menu Link Save (absolute URL href)
+POST {{hosturl}}/menu-link-save
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "href": "https://example.com/dashboard",
+  "icon": "external-link",
+  "menuGroupId": "ADMINISTRATOR",
+  "name": "External Dashboard",
+  "nameLang": { "en-US": "External Dashboard" },
+  "priority": 2,
+  "persona": "admin",
+  "active": true
+}
+
+### 3. Menu Link Entity
 GET {{hosturl}}/menu-link-entity/DASHBOARD
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
 
-### 3. Menu Link Search
+### 4. Menu Link Search
 POST {{hosturl}}/menu-link-search
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
@@ -42,7 +59,7 @@ Content-Type: application/json
   "order": "ASC"
 }
 
-### 4. Menu Link Delete
+### 5. Menu Link Delete
 DELETE {{hosturl}}/menu-link-delete
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}

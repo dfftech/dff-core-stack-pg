@@ -19,8 +19,8 @@ export default class MailService {
       );
       if (!row?.content) throw new AppError("INVALID_DATA");
 
-      const html = await CallHbs(row.content, { data: input.data ?? {} } as RequestBodyType);
-      const rendered = Array.isArray(html) ? html.join("") : String(html);
+      const markdown = await CallHbs(row.content, { data: input.data ?? {} } as RequestBodyType);
+      const rendered = Array.isArray(markdown) ? markdown.join('') : String(markdown);
       let subject = (input.subject || row.subject || "").trim();
       if (subject.includes("{{")) {
         const sub = await CallHbs(subject, { data: input.data ?? {} } as RequestBodyType);

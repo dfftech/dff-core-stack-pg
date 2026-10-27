@@ -107,6 +107,7 @@ export default class MenuRoleService {
       active: dto.active !== undefined ? dto.active : true,
     });
     log.info("Menu role created", { id: saved.id });
+    if (existing) return saved;
     try {
       const links = (
         await MenuLinkService.Query({

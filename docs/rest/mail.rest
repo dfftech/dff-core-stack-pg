@@ -14,9 +14,7 @@ Content-Type: application/json
   "lang": "en-US",
   "data": {
     "otp": "500827",
-    "logoUrl": "https://www.w3.org/Icons/w3c_home.png",
-    "messageAbove": "Your one-time password is:",
-    "messageBelow": "Do not share this code with anyone. It expires soon."
+    "logoUrl": "https://www.w3.org/Icons/w3c_home.png"
   },
   "to": "noreply@dfftech.com"
 }
@@ -42,4 +40,29 @@ Content-Type: application/json
       "cid": "logo.img"
     }
   ]
+}
+
+
+###
+POST {{hosturl}}/mail-send
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "templateId": "store-verification_en-US",
+  "lang": "en-US",
+  "to": "noreply@dfftech.com",
+  "data": {
+    "id": "ROCK",
+    "storeId": "ROCK",
+    "name": "rock",
+    "storeName": "rock",
+    "legalName": "rock",
+    "countryCode": "+1",
+    "contactPerson": "Rock Man",
+    "contactNumber": "1234534523",
+    "contactEmail": "rock@admin.com",
+    "actionUrl": "http://localhost:4000"
+  }
 }

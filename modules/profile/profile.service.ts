@@ -1,7 +1,8 @@
-import { and, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, arrayContains, count, eq, ilike, or, sql, type SQL } from "drizzle-orm";
 import { AppCodeByType, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { logger, session_db, session_user } from "../../utils/app-util";
-import type { ProfileDto } from "./profile.dto";
+import { AppError } from "../../utils/app-error";
+import type { ProfileDto, ProfileRoleDto, ProfileRoleSearchDto } from "./profile.dto";
 import { profileEntity, type ProfileEntity } from "./profile.entity";
 import ProfileHashService from "../profile-hash/profile-hash.service";
 
@@ -179,5 +180,69 @@ export default class ProfileService {
       skip,
       limit,
     };
+  }
+
+  /** Returns all non-archived profiles whose `roles` array contains the given roleId (no pagination). */
+  static async SearchByRoleService(input: ProfileRoleSearchDto) {
+    const log = logger();
+    const db = this.Db();
+    const table = this.EntityService();
+    const roleId = String(input.roleId || "").trim();
+    if (!roleId) throw new AppError("INVALID_ROLE_ID");
+
+    const where = and(eq(table.is_archived, false), arrayContains(table.roles, [roleId]));
+    const rows = await db.select().from(table).where(where).orderBy(sql`${table.updated_at} DESC`);
+
+    log.info("Searched profiles by role", { roleId, total: rows.length });
+    return rows.map((r: Record<string, unknown>) => toViewMapper(r));
+  }
+
+  /** Adds roleId to a profile's `roles` array (no-op if already present). Throws if profile is missing or archived. */
+  static async AddRoleService(dto: ProfileRoleDto) {
+    const log = logger();
+    const profileId = String(dto.profileId || "").trim();
+    const roleId = String(dto.roleId || "").trim();
+    if (!profileId) throw new AppError("INVALID_PROFILE_ID");
+    if (!roleId) throw new AppError("INVALID_ROLE_ID");
+
+    const db = this.Db();
+    const table = this.EntityService();
+    const existing = (
+      await db.select().from(table).where(and(eq(table.id, profileId), eq(table.is_archived, false))).limit(1)
+    )[0] as ProfileEntity | undefined;
+    if (!existing) throw new AppError("PROFILE_NOT_FOUND");
+
+    const currentRoles = existing.roles ?? [];
+    if (!currentRoles.includes(roleId)) {
+      let entity = { ...existing, roles: [...currentRoles, roleId] } as ProfileEntity;
+      entity = this.AuditUpdate(entity, false);
+      await db.update(table).set(entity).where(eq(table.id, profileId));
+      log.info("Added role to profile", { profileId, roleId });
+      return toViewMapper(entity);
+    }
+    return toViewMapper(existing);
+  }
+
+  /** Removes roleId from a profile's `roles` array (no-op if absent). Throws if profile is missing or archived. */
+  static async DeleteRoleService(dto: ProfileRoleDto) {
+    const log = logger();
+    const profileId = String(dto.profileId || "").trim();
+    const roleId = String(dto.roleId || "").trim();
+    if (!profileId) throw new AppError("INVALID_PROFILE_ID");
+    if (!roleId) throw new AppError("INVALID_ROLE_ID");
+
+    const db = this.Db();
+    const table = this.EntityService();
+    const existing = (
+      await db.select().from(table).where(and(eq(table.id, profileId), eq(table.is_archived, false))).limit(1)
+    )[0] as ProfileEntity | undefined;
+    if (!existing) throw new AppError("PROFILE_NOT_FOUND");
+
+    const currentRoles = existing.roles ?? [];
+    let entity = { ...existing, roles: currentRoles.filter((r) => r !== roleId) } as ProfileEntity;
+    entity = this.AuditUpdate(entity, false);
+    await db.update(table).set(entity).where(eq(table.id, profileId));
+    log.info("Removed role from profile", { profileId, roleId });
+    return toViewMapper(entity);
   }
 }

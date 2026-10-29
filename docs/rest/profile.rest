@@ -40,3 +40,35 @@ Content-Type: application/json
 GET {{hosturl}}/profile-entity/ADMIN_ADMIN
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
+
+### 4. Profile Role Search (all profiles, not archived, whose roles contains roleId)
+POST {{hosturl}}/profile-role-search
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "roleId": "ADMIN_ADMIN"
+}
+
+### 5. Profile Role Add
+POST {{hosturl}}/profile-role-add
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "profileId": "SUPER_ADMIN",
+  "roleId": "ADMIN_ADMIN"
+}
+
+### 6. Profile Role Delete
+POST {{hosturl}}/profile-role-delete
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "profileId": "SUPER_ADMIN",
+  "roleId": "ADMIN_ADMIN"
+}

@@ -254,6 +254,16 @@ Table `upload_files` (`modules/upload-file`). Flow: `GET /sss-url` → PUT bytes
 - `POST /upload-file-status` `{ id, status }`
 - `POST /upload-file-delete` `{ id }`
 
+## Upload validation
+
+Table `upload_validations` (`modules/upload-validation`; DDL in `docs/sql/upload_validations.sql`) — per-`type` rules describing which entity field an uploaded file maps to, and whether it is mandatory.
+
+- `POST /upload-validation-save` `{ id?, type, entityField, fileField, isRequired?, compute?, aiSummary?, active? }` — `type`, `entityField` and `fileField` are **mandatory**; `isRequired` defaults to `false`; `compute` and `aiSummary` are optional text; `id` defaults to `{type}_{entityField}_{fileField}`.
+- `POST /upload-validation-batch-save` `{ items: [...] }` — saves (creates or updates) a batch of rows in one call using the same validation as `/upload-validation-save` for each item; returns the saved rows and `total`.
+- `GET /upload-validation-entity/:id`
+- `POST /upload-validation-search` `{ type?, active?, searchTerm?, limit, skip }`
+- `GET /upload-validation-type/:type` (all active rows of one type, ordered by `entityField`, `fileField`)
+
 ---
 
 ## Authorization
@@ -272,4 +282,4 @@ Response `data` is a menu tree sorted by `priority`:
 
 One file per module in `docs/rest/` for the VS Code REST Client extension. Set `@hosturl`, `@authToken` and `@xTenantId` at the top of a file, then use "Send Request" above each `###` block.
 
-`docs/rest/address.rest`, `docs/rest/app-constant.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`, `docs/rest/upload-file.rest`.
+`docs/rest/address.rest`, `docs/rest/app-constant.rest`, `docs/rest/app-setting.rest`, `docs/rest/auth.rest`, `docs/rest/enquiry.rest`, `docs/rest/health.rest`, `docs/rest/locale.rest`, `docs/rest/mail.rest`, `docs/rest/menu-access.rest`, `docs/rest/menu-group.rest`, `docs/rest/menu-link.rest`, `docs/rest/menu-role.rest`, `docs/rest/otp-verification.rest`, `docs/rest/profile.rest`, `docs/rest/profile-address.rest`, `docs/rest/profile-hash.rest`, `docs/rest/query-list.rest`, `docs/rest/query-load.rest`, `docs/rest/query-report.rest`, `docs/rest/site-content.rest`, `docs/rest/sss.rest`, `docs/rest/template.rest`, `docs/rest/translation.rest`, `docs/rest/upload-file.rest`, `docs/rest/upload-validation.rest`.

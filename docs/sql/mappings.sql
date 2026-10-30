@@ -1,10 +1,10 @@
-CREATE TABLE IF NOT EXISTS upload_validations (
+CREATE TABLE IF NOT EXISTS mappings (
   id            VARCHAR(255) PRIMARY KEY,
   type          VARCHAR(100) NOT NULL,
   entity_field  VARCHAR(255) NOT NULL,
-  file_field    VARCHAR(255) NOT NULL,
+  input_field   VARCHAR(255) NOT NULL,
   is_required   BOOLEAN NOT NULL DEFAULT FALSE,
-  compute       TEXT,
+  compute       TEXT[],
   ai_summary    TEXT,
   active        BOOLEAN NOT NULL DEFAULT TRUE,
   created_by    VARCHAR(255) NOT NULL DEFAULT 'System',
@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS upload_validations (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_upload_validations_type ON upload_validations (type);
-CREATE INDEX IF NOT EXISTS idx_upload_validations_type_active ON upload_validations (type, active);
+CREATE INDEX IF NOT EXISTS idx_mappings_type ON mappings (type);
+CREATE INDEX IF NOT EXISTS idx_mappings_type_active ON mappings (type, active);

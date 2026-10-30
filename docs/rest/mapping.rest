@@ -2,10 +2,10 @@
 @hosturl = http://localhost:4000
 @authToken =
 @xTenantId = local
-@uploadValidationId = PASTE_data.id_FROM_SAVE
+@mappingId = PASTE_data.id_FROM_SAVE
 
-### 1. Upload Validation Save
-POST {{hosturl}}/upload-validation-save
+### 1. Mapping Save
+POST {{hosturl}}/mapping-save
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
 Content-Type: application/json
@@ -13,14 +13,14 @@ Content-Type: application/json
 {
   "type": "Test-Application",
   "entityField": "panNumber",
-  "fileField": "panCardFile",
+  "inputField": "panCardFile",
   "isRequired": true,
-  "compute": "UPPER(value)",
+  "compute": ["UPPER(value)", "TRIM(value)"],
   "aiSummary": "Extract PAN number from the uploaded card image."
 }
 
-### 2. Upload Validation Batch Save
-POST {{hosturl}}/upload-validation-batch-save
+### 2. Mapping Batch Save
+POST {{hosturl}}/mapping-batch-save
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
 Content-Type: application/json
@@ -30,26 +30,26 @@ Content-Type: application/json
     {
       "type": "Test-Application",
       "entityField": "panNumber",
-      "fileField": "panCardFile",
+      "inputField": "panCardFile",
       "isRequired": true
     },
     {
       "type": "Test-Application",
       "entityField": "aadharNumber",
-      "fileField": "aadharCardFile",
+      "inputField": "aadharCardFile",
       "isRequired": false,
       "aiSummary": "Extract Aadhar number from the uploaded card image."
     }
   ]
 }
 
-### 3. Upload Validation Entity
-GET {{hosturl}}/upload-validation-entity/{{uploadValidationId}}
+### 3. Mapping Entity
+GET {{hosturl}}/mapping-entity/{{mappingId}}
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
 
-### 4. Upload Validation Search
-POST {{hosturl}}/upload-validation-search
+### 4. Mapping Search
+POST {{hosturl}}/mapping-search
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
 Content-Type: application/json
@@ -60,7 +60,7 @@ Content-Type: application/json
   "skip": 0
 }
 
-### 5. Upload Validation By Type
-GET {{hosturl}}/upload-validation-type/Test-Application
+### 5. Mapping By Type
+GET {{hosturl}}/mapping-type/Test-Application
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}

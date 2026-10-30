@@ -64,3 +64,156 @@ Content-Type: application/json
 GET {{hosturl}}/mapping-type/Test-Application
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
+
+### 6. Mapping Entity Data - success (seed docs/sql/mappings_seed.sql first; type "product")
+POST {{hosturl}}/mapping-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "product",
+  "data": {
+    "item_id": "1010004",
+    "hh_item_number": "1010-004",
+    "product_name": "Split Leather Carpenters Waist Apron - 11 Pockets",
+    "extended_description_en": "- Made from durable split leather\n- 2\" wide polyweb belt",
+    "marketing_description_en": "The Carpenter's Leather Tool Apron has multiple pockets",
+    "extended_description_fr": "- Fabriqué à partir de cuir fendu durable\n- Ceinture polyweb",
+    "marketing_description_fr": "Le tablier à outils en cuir pour charpentier est doté",
+    "department_code": "119",
+    "department_name": "TOOLS, HAND",
+    "category_code": "246",
+    "product_class_name": "TOOL BELTS&ACC"
+  }
+}
+
+### 7. Mapping Entity Data - missing required field (expect data: null, error "[id: unknown] Missing required value(s) for: id (input field \"item_id\"), name_lang.en-US (input field \"product_name\")")
+POST {{hosturl}}/mapping-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "product",
+  "data": {
+    "hh_item_number": "1010-004"
+  }
+}
+
+### 7b. Mapping Entity Data - id present but another required field missing (expect error "[id: 1010004] Missing required value(s) for: name_lang.en-US (input field \"product_name\")")
+POST {{hosturl}}/mapping-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "product",
+  "data": {
+    "item_id": "1010004"
+  }
+}
+
+### 8. Mapping Entity Data - unknown type (expect data: null, error "[id: unknown] No active mapping rules found for type \"does-not-exist\"")
+POST {{hosturl}}/mapping-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "does-not-exist",
+  "data": { "item_id": "1" }
+}
+
+### 9. Mapping Batch Entity Data - real CSV export sample (2 full product rows, same type "product")
+# Source: raw product CSV export (item_id, hh_item_number, ..., content_warning) converted to
+# JSON rows and passed as items. Response data: [{ id, data, error? }, ...], one per input item,
+# in the same order; total = items.length. Fields not in the active "product" mapping (e.g.
+# vendor_part_number, brand, flc_code, search_text_en) are simply ignored by the mapper.
+POST {{hosturl}}/mapping-batch-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "product",
+  "items": [
+    {
+      "item_id": "1010004",
+      "hh_item_number": "1010-004",
+      "vendor_part_number": "MECMT14402",
+      "brand": "MECHTOOLS",
+      "product_name": "Split Leather Carpenters Waist Apron - 11 Pockets",
+      "department_code": "119",
+      "department_name": "TOOLS, HAND",
+      "category_code": "246",
+      "category_name": "WORKSHOP ORG",
+      "product_class_code": "1730",
+      "product_class_name": "TOOL BELTS&ACC",
+      "flc_code": "3362",
+      "flc_name": "APRONS/HOLDRS/SUSPND",
+      "extended_description_en": "- Made from durable split leather\n- 2\" wide polyweb belt with a quick release buckle\n- 11 various sized pockets \n- Rust- resistant capped rivet\n- Two nickel-plated rust-resistant hammer holders",
+      "extended_description_fr": "- Fabriqué à partir de cuir fendu durable\n- Ceinture polyweb de 2 po de large avec une boucle à \n   déclenchement rapide\n- Muni de 11 poches de tailles différentes tailles\n- Doté de rivet capuchonné résistant à la rouille\n- Dispose de 2 porte-marteaux en nickel antirouille",
+      "marketing_description_en": "The Carpenter's Leather Tool Apron has multiple pockets and holders for quick access on the job. The middle pocket is ideal for holding pocket tapes and can be used as nails & rivets pouch. Made from durable leather with rivet reinforced stress points. The apron has a sturdy, adjustable polyweb belt and a durable quick-release buckle and comes with 2 rust-resistant nickle plated hammer holders. The belt is perforated to suit all waist sizes from 34\"- 51\".",
+      "marketing_description_fr": "Le tablier à outils en cuir pour charpentier est doté de plusieurs poches et porte-outils permettant un accès rapide aux outils sur le chantier. La poche centrale est idéale pour ranger un ruban à mesurer de poche et peut également servir de pochette pour les clous et les rivets.Fabriqué en cuir durable, il comporte des points de tension renforcés par des rivets pour une durabilité accrue. Le tablier est muni d’une solide ceinture réglable en sangle de polyester avec une boucle à dégagement rapide durable. Il comprend également 2 porte-marteaux nickelés résistants à la rouille. La ceinture est perforée afin de convenir aux tours de taille de 34 à 51 po.",
+      "search_text_en": "MECHTOOLS | Split Leather Carpenters Waist Apron - 11 Pockets | TOOLS, HAND | WORKSHOP ORG | TOOL BELTS&ACC | APRONS/HOLDRS/SUSPND | - Made from durable split leather\n- 2\" wide polyweb belt with a quick release buckle\n- 11 various sized pockets \n- Rust- resistant capped rivet\n- Two nickel-plated rust-resistant hammer holders | The Carpenter's Leather Tool Apron has multiple pockets and holders for quick access on the job. The middle pocket is ideal for holding pocket tapes and can be used as nails & rivets pouch. Made from durable leather with rivet reinforced stress points. The apron has a sturdy, adjustable polyweb belt and a durable quick-release buckle and comes with 2 rust-resistant nickle plated hammer holders. The belt is perforated to suit all waist sizes from 34\"- 51\".",
+      "search_text_fr": "MECHTOOLS | Split Leather Carpenters Waist Apron - 11 Pockets | TOOLS, HAND | WORKSHOP ORG | TOOL BELTS&ACC | APRONS/HOLDRS/SUSPND | - Fabriqué à partir de cuir fendu durable\n- Ceinture polyweb de 2 po de large avec une boucle à \n   déclenchement rapide\n- Muni de 11 poches de tailles différentes tailles\n- Doté de rivet capuchonné résistant à la rouille\n- Dispose de 2 porte-marteaux en nickel antirouille | Le tablier à outils en cuir pour charpentier est doté de plusieurs poches et porte-outils permettant un accès rapide aux outils sur le chantier. La poche centrale est idéale pour ranger un ruban à mesurer de poche et peut également servir de pochette pour les clous et les rivets.Fabriqué en cuir durable, il comporte des points de tension renforcés par des rivets pour une durabilité accrue. Le tablier est muni d’une solide ceinture réglable en sangle de polyester avec une boucle à dégagement rapide durable. Il comprend également 2 porte-marteaux nickelés résistants à la rouille. La ceinture est perforée afin de convenir aux tours de taille de 34 à 51 po.",
+      "recommendation_eligible": "TRUE",
+      "content_completeness_score": "80"
+    },
+    {
+      "item_id": "1010005",
+      "hh_item_number": "1010-005",
+      "vendor_part_number": "MECMT14407",
+      "brand": "MECHTOOLS",
+      "product_name": "Professional Top Grain Leather Carpenters Waist Apron - 11 Pockets",
+      "department_code": "119",
+      "department_name": "TOOLS, HAND",
+      "category_code": "246",
+      "category_name": "WORKSHOP ORG",
+      "product_class_code": "1730",
+      "product_class_name": "TOOL BELTS&ACC",
+      "flc_code": "3362",
+      "flc_name": "APRONS/HOLDRS/SUSPND",
+      "extended_description_en": "- Top grain leather\n- Long life veg-tan harness quality leather belt with a \n   strong roller buckle\n- Rust resistant, extra strong rivets, strengthen stress \n   points and resist leather separation to lengthen apron \n   life\n- Nickel plated suspender anchors and hammer rings\n- 11 pockets, including 2 extra large pockets",
+      "extended_description_fr": "- Fabriqué à partir de cuir supérieur\n- Ceinture de qualité en cuir de veg-tan de longue durée \n   avec une boucle à rouleau solide\n- Muni de rivets extra forts, résistants à la rouille, \n   renforçant les points de tension et résistant à la \n   séparation du cuir pour prolonger la durée de vie du \n   tablier\n- Doté d'ancres de suspente et anneaux de marteau \n   plaqué en nickel\n- Dispose de 11 poches, dont 2 poches extra grandes",
+      "marketing_description_en": "This 11-pocket master carpenter's apron is made with top grain leather and includes 2 extra large pockets. It comes with rust resistant, extra strong rivets that strengthen stress points and resist leather separation to lengthen apron life. Comes with nickel-plated suspender anchors and hammer and 2 metal hammer rings and a leather belt that fits almost all sizes from 36-in to 51-in.",
+      "marketing_description_fr": "Ce tablier de maître-charpentier à 11 poches est fabriqué en cuir pleine fleur et comprend 2 poches extra larges. Il est doté de rivets ultrarobustes et résistants à la rouille qui renforcent les points de tension et empêchent le cuir de se séparer, contribuant ainsi à prolonger la durée de vie du tablier. Il comprend des ancrages nickelés pour bretelles, 2 anneaux métalliques pour marteau ainsi qu’une ceinture en cuir convenant à presque toutes les tailles, soit de 36 à 51 po de tour de taille.",
+      "search_text_en": "MECHTOOLS | Professional Top Grain Leather Carpenters Waist Apron - 11 Pockets | TOOLS, HAND | WORKSHOP ORG | TOOL BELTS&ACC | APRONS/HOLDRS/SUSPND | - Top grain leather\n- Long life veg-tan harness quality leather belt with a \n   strong roller buckle\n- Rust resistant, extra strong rivets, strengthen stress \n   points and resist leather separation to lengthen apron \n   life\n- Nickel plated suspender anchors and hammer rings\n- 11 pockets, including 2 extra large pockets | This 11-pocket master carpenter's apron is made with top grain leather and includes 2 extra large pockets. It comes with rust resistant, extra strong rivets that strengthen stress points and resist leather separation to lengthen apron life. Comes with nickel-plated suspender anchors and hammer and 2 metal hammer rings and a leather belt that fits almost all sizes from 36-in to 51-in.",
+      "search_text_fr": "MECHTOOLS | Professional Top Grain Leather Carpenters Waist Apron - 11 Pockets | TOOLS, HAND | WORKSHOP ORG | TOOL BELTS&ACC | APRONS/HOLDRS/SUSPND | - Fabriqué à partir de cuir supérieur\n- Ceinture de qualité en cuir de veg-tan de longue durée \n   avec une boucle à rouleau solide\n- Muni de rivets extra forts, résistants à la rouille, \n   renforçant les points de tension et résistant à la \n   séparation du cuir pour prolonger la durée de vie du \n   tablier\n- Doté d'ancres de suspente et anneaux de marteau \n   plaqué en nickel\n- Dispose de 11 poches, dont 2 poches extra grandes | Ce tablier de maître-charpentier à 11 poches est fabriqué en cuir pleine fleur et comprend 2 poches extra larges. Il est doté de rivets ultrarobustes et résistants à la rouille qui renforcent les points de tension et empêchent le cuir de se séparer, contribuant ainsi à prolonger la durée de vie du tablier. Il comprend des ancrages nickelés pour bretelles, 2 anneaux métalliques pour marteau ainsi qu’une ceinture en cuir convenant à presque toutes les tailles, soit de 36 à 51 po de tour de taille.",
+      "recommendation_eligible": "TRUE",
+      "content_completeness_score": "80"
+    }
+  ]
+}
+
+### 10. Mapping Batch Entity Data - request-level failure (empty items, expect data: null, error "[id: unknown] Mapping \"items\" must be a non-empty array")
+POST {{hosturl}}/mapping-batch-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "product",
+  "items": []
+}
+
+### 11. Mapping Batch Entity Data - one item is not a JSON object (isolated per-item failure, NOT a request-level failure)
+# Expect data: [
+#   { id, data: {...} },                                          <- item 1: valid
+#   { id: "unknown", data: null, error: "Item must be a JSON object" }, <- item 2: malformed, isolated
+#   { id, data: {...} }                                           <- item 3: valid, unaffected by item 2
+# ], total: 3
+POST {{hosturl}}/mapping-batch-entity-data
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "type": "product",
+  "items": [
+    { "item_id": "1010004", "product_name": "Split Leather Carpenters Waist Apron - 11 Pockets" },
+    "not-a-json-object",
+    { "item_id": "1010005", "product_name": "Leather Nail and Tool Bag" }
+  ]
+}

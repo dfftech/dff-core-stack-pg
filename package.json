@@ -14,7 +14,7 @@
   "dependencies": {
     "dff-util": "^1.4.4",
     "drizzle-orm": "^0.45.2",
-    "encore.dev": "1.58.4",
+    "encore.dev": "^1.58.6",
     "kafkajs": "^2.2.4",
     "marked": "^18.1.1",
     "nodemailer": "^10.0.10",

@@ -5,7 +5,7 @@ export const mappingEntity = pgTable("mappings", {
   id: varchar("id", { length: 255 }).primaryKey(),
   type: varchar("type", { length: 100 }).notNull(),
   entity_field: varchar("entity_field", { length: 255 }).notNull(),
-  input_field: varchar("input_field", { length: 255 }).notNull(),
+  input_field: varchar("input_field", { length: 255 }),
   is_required: boolean("is_required").notNull().default(false),
   compute: text("compute").array(),
   ai_summary: text("ai_summary"),

@@ -42,7 +42,8 @@ export default class MappingService {
   }
 
   static BuildId(dto: MappingDto): string {
-    return AppCodeByType(`${dto.entityField}_${dto.inputField}`, dto.type);
+    const inputPart = dto.inputField?.trim() || "NA";
+    return AppCodeByType(`${dto.entityField}_${inputPart}`, dto.type);
   }
 
   static NormalizeCompute(compute: unknown): string[] | null {
@@ -51,10 +52,10 @@ export default class MappingService {
     return values.length ? values : null;
   }
 
+  /** `isRequired` is a per-row flag on `entityField` (the mapped output), not on `inputField`. */
   static SaveValidation(dto: MappingDto): string | null {
     if (!dto.type || !dto.type.trim()) return "INVALID_MAPPING_TYPE";
     if (!dto.entityField || !dto.entityField.trim()) return "INVALID_MAPPING_ENTITY_FIELD";
-    if (!dto.inputField || !dto.inputField.trim()) return "INVALID_MAPPING_INPUT_FIELD";
     return null;
   }
 
@@ -73,7 +74,7 @@ export default class MappingService {
           id,
           type: dto.type.trim(),
           entity_field: dto.entityField.trim(),
-          input_field: dto.inputField.trim(),
+          input_field: dto.inputField !== undefined ? dto.inputField.trim() || null : existing?.input_field ?? null,
           is_required: dto.isRequired ?? existing?.is_required ?? false,
           compute: dto.compute !== undefined ? this.NormalizeCompute(dto.compute) : existing?.compute ?? null,
           ai_summary: dto.aiSummary ?? existing?.ai_summary ?? null,

@@ -126,10 +126,14 @@ Content-Type: application/json
 }
 
 ### 9. Mapping Batch Entity Data - real CSV export sample (2 full product rows, same type "product")
-# Source: raw product CSV export (item_id, hh_item_number, ..., content_warning) converted to
-# JSON rows and passed as items. Response data: [{ id, data, error? }, ...], one per input item,
-# in the same order; total = items.length. Fields not in the active "product" mapping (e.g.
-# vendor_part_number, brand, flc_code, search_text_en) are simply ignored by the mapper.
+# Source CSV (shown for import reference; the API request below uses the same two rows as JSON):
+# item_id,hh_item_number,vendor_part_number,brand,product_name,department_code,department_name,category_code,category_name,product_class_code,product_class_name,flc_code,flc_name,extended_description_en,marketing_description_en,recommendation_eligible,content_completeness_score
+# 1010004,1010-004,MECMT14402,MECHTOOLS,"Split Leather Carpenters Waist Apron - 11 Pockets",119,"TOOLS, HAND",246,"WORKSHOP ORG",1730,TOOL BELTS&ACC,3362,APRONS/HOLDRS/SUSPND,"- Made from durable split leather; 11 various sized pockets","The Carpenter's Leather Tool Apron has multiple pockets and holders for quick access on the job.",TRUE,80
+# 1010005,1010-005,MECMT14407,MECHTOOLS,"Professional Top Grain Leather Carpenters Waist Apron - 11 Pockets",119,"TOOLS, HAND",246,"WORKSHOP ORG",1730,TOOL BELTS&ACC,3362,APRONS/HOLDRS/SUSPND,"- Top grain leather; 11 pockets, including 2 extra large pockets","This 11-pocket master carpenter's apron is made with top grain leather and includes 2 extra large pockets.",TRUE,80
+#
+# Response data: [{ id, data, error? }, ...], one per input item, in the same order; total =
+# items.length. Fields not in the active "product" mapping (e.g. vendor_part_number, brand,
+# flc_code, search_text_en) are simply ignored by the mapper.
 POST {{hosturl}}/mapping-batch-entity-data
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}

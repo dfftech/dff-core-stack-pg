@@ -114,7 +114,7 @@ Content-Type: application/json
   }
 }
 
-### 8. Mapping Entity Data - unknown type (expect data: null, error "[id: unknown] No active mapping rules found for type \"does-not-exist\"")
+### 8. Mapping Entity Data - unknown type (expect data: null, error "No active mapping rules found for type \"does-not-exist\"")
 POST {{hosturl}}/mapping-entity-data
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}

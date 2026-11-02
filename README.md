@@ -248,7 +248,7 @@ Object key: `{folder}/{kebab-provider}/{kebab-type}/{name}-{uuid}{ext}`.
 
 Table `upload_files` (`modules/upload-file`). Flow: `GET /sss-url` → PUT bytes to `data.upload` → `POST /upload-file-save` with the public `data.download` as `url` plus the `data.provider` / `data.type` returned by sss.
 
-- `POST /upload-file-save` `{ id?, name, url, status?, type, provider, active? }` — `type` and `provider` are **mandatory**; `id` defaults to `{provider}-{type}-{name}-{random}`.
+- `POST /upload-file-save` `{ id?, name, url, status?, type, provider, summary?, errorSummary?, active? }` — `type` and `provider` are **mandatory**; `id` defaults to `{provider}-{type}-{name}-{random}`. `summary` / `errorSummary` are optional free-text columns (`summary` / `error_summary`, nullable).
 - `GET /upload-file-entity/:id`
 - `POST /upload-file-search` `{ provider?, type?, status?, active?, limit, skip }`
 - `POST /upload-file-status` `{ id, status }`

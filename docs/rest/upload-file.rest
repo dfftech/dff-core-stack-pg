@@ -17,7 +17,9 @@ Content-Type: application/json
   "name": "JetBrainMonoFont.png",
   "url": "https://bucket.s3.amazonaws.com/local/local-admin/test-application/JetBrainMonoFont-uuid.png",
   "type": "Test-Application",
-  "provider": "TEST"
+  "provider": "TEST",
+  "summary": "Font preview image uploaded for the test application.",
+  "errorSummary": null
 }
 
 ### 2. Upload File Entity

@@ -8,6 +8,8 @@ export const uploadFileEntity = pgTable("upload_files", {
   status: text("status").notNull().default("active"),
   type: text("type").notNull(),
   provider: text("provider").notNull(),
+  summary: text("summary"),
+  error_summary: text("error_summary"),
   active: boolean("active").default(true),
   created_by: text("created_by").default("System"),
   updated_by: text("updated_by").default("System"),

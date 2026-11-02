@@ -7,6 +7,8 @@ export type UploadFileDto = {
   status?: string;
   type: string;
   provider: string;
+  summary?: string | null;
+  errorSummary?: string | null;
   active?: boolean;
 };
 

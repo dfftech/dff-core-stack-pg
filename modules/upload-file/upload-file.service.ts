@@ -62,6 +62,8 @@ export default class UploadFileService {
         status: dto.status?.trim() || 'active',
         type: dto.type.trim(),
         provider,
+        summary: dto.summary?.trim() || null,
+        errorSummary: dto.errorSummary?.trim() || null,
         active: dto.active ?? true,
       }) as Partial<UploadFileEntity>;
 

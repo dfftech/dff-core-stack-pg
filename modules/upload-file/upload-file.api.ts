@@ -48,12 +48,13 @@ export const SearchUploadFileEntities = api<UploadFileSearchRequest, ResponseTyp
   async (input) => UploadFileService.SearchEntitiesService(input),
 );
 
-/** POST /upload-file-status — update upload-file status. */
-export const UpdateUploadFileStatus = api<{ id: string; status: string }, ResponseType>(
+/** POST /upload-file-status — update upload-file status (and optional summary/errorSummary). */
+export const UpdateUploadFileStatus = api<{ id: string; status: string; summary?: string | null; errorSummary?: string | null }, ResponseType>(
   {
     expose: true,
     method: "POST",
     path: "/upload-file-status",
   },
-  async ({ id, status }) => UploadFileService.UpdateStatusService(id, status),
+  async ({ id, status, summary, errorSummary }) =>
+    UploadFileService.UpdateStatusService(id, status, summary, errorSummary),
 );

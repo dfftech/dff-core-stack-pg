@@ -93,12 +93,22 @@ export default class UploadFileService {
     return { data: { id } };
   }
 
-  static async UpdateStatusService(id: string, status: string): Promise<ResponseType> {
+  static async UpdateStatusService(
+    id: string,
+    status: string,
+    summary?: string | null,
+    errorSummary?: string | null,
+  ): Promise<ResponseType> {
     if (!id?.trim()) throw new Error('INVALID_ID');
     if (!status?.trim()) throw new Error('INVALID_STATUS');
     const db = this.Db();
     const table = this.EntityService();
-    const raw = this.AuditUpdate({ status: status.trim() }, false);
+    const patch = toEntityMapper({
+      status: status.trim(),
+      ...(summary !== undefined ? { summary: summary?.trim() || null } : {}),
+      ...(errorSummary !== undefined ? { errorSummary: errorSummary?.trim() || null } : {}),
+    }) as Partial<UploadFileEntity>;
+    const raw = this.AuditUpdate(patch, false);
     await db.update(table).set(raw).where(eq(table.id, id.trim()));
     return this.EntityByIdService(id.trim());
   }

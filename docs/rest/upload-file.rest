@@ -36,8 +36,7 @@ Content-Type: application/json
 {
   "provider": "local-admin",
   "type": "Test-Application",
-  "limit": 10,
-  "skip": 0
+  "limit": 1
 }
 
 ### 4. Upload File Status
@@ -48,7 +47,9 @@ Content-Type: application/json
 
 {
   "id": "{{uploadId}}",
-  "status": "inactive"
+  "status": "inactive",
+  "summary": "Marked inactive after review.",
+  "errorSummary": null
 }
 
 ### 5. Upload File Delete

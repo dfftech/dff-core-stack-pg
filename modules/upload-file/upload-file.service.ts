@@ -1,7 +1,6 @@
-import { AppRandomString, toEntityMapper, toViewMapper } from 'dff-util';
+import { AppRandomString, toEntityMapper, toViewMapper, type ResponseType } from 'dff-util';
 import { and, desc, eq } from 'drizzle-orm';
 import log from 'encore.dev/log';
-import type { ResponseType } from '../../utils/app-types';
 import { session_db, session_user } from '../../utils/app-util';
 import type { UploadFileDto, UploadFileSearchRequest } from './upload-file.dto';
 import { uploadFileEntity, type UploadFileEntity } from './upload-file.entity';
@@ -9,8 +8,7 @@ import { uploadFileEntity, type UploadFileEntity } from './upload-file.entity';
 const ID_SAFE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 const RANDOM_SUFFIX_LENGTH = 8;
 
-const sanitizeIdPart = (value: string): string =>
-  (value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+const sanitizeIdPart = (value: string): string => (value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
 
 export default class UploadFileService {
   static Db() {

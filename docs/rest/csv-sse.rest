@@ -1,0 +1,16 @@
+# Environment
+@hosturl = http://localhost:4000
+@xTenantId = local
+
+### Stream remote CSV rows as JSON SSE events
+# `url` must be an externally reachable HTTP(S) CSV URL.
+# `batch-size` is optional and defaults to 100 (allowed range: 1-1000).
+# Events use dff-util keys: PROCESSING, ACTION_COMPLETED, and OPERATION_FAILED.
+# Every event payload has: processed, batches, data (valid records), and error
+# (invalid record details or a fatal error code).
+GET {{hosturl}}/csv-sse?url=https://dtf-boltnbolt-nprd.s3.ca-central-1.amazonaws.com/local/head-office/products/products_sample-71e23b10-95fd-42a9-ac31-52adaaf397fd.csv&batch-size=5
+Accept: text/event-stream
+x-tenant-id: {{xTenantId}}
+
+# For a terminal client use curl -N so it does not buffer SSE events:
+# curl -N -H "x-tenant-id: local" "http://localhost:4000/csv-sse?url=https%3A%2F%2Fexample.com%2Fdata.csv&batch-size=100"

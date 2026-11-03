@@ -1,0 +1,23 @@
+export const DEFAULT_BATCH_SIZE = 100;
+export const MAX_BATCH_SIZE = 1_000;
+export const MAX_CSV_BYTES = 50 * 1024 * 1024;
+export const MAX_CSV_ROWS = 100_000;
+export const FETCH_TIMEOUT_MS = 60_000;
+
+export type CsvSseRequest = {
+  url: string;
+  batchSize: number;
+};
+
+export type CsvSseRecordError = {
+  record: unknown;
+  rowNumber: number;
+  message: string;
+};
+
+export type CsvSseEvent = {
+  processed: number;
+  batches: number;
+  data: Record<string, string>[];
+  error: CsvSseRecordError[] | { code: string }[];
+};

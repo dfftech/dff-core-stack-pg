@@ -36,7 +36,8 @@ Content-Type: application/json
 {
   "provider": "local-admin",
   "type": "Test-Application",
-  "limit": 1
+  "limit": 10,
+  "skip": 0
 }
 
 ### 4. Upload File Status

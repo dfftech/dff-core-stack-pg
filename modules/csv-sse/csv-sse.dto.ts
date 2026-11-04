@@ -6,6 +6,8 @@ export const MAX_CSV_ROWS = 100_000;
 export type CsvSseRequest = {
   url: string;
   batchSize: number;
+  maxBatches?: number;
+  batchNo?: number;
 };
 
 export type CsvSseRecordError = {

@@ -25,34 +25,49 @@ export class CsvSseError extends Error {
   }
 }
 
-export function parseRequest(urlValue: string | null, batchSizeValue: string | null): CsvSseRequest {
-  if (!urlValue?.trim()) throw new CsvSseError("INVALID_CSV_URL");
+export function parseRequest(
+  urlValue: string | null,
+  batchSizeValue: string | null,
+  maxBatchesValue: string | null,
+  batchNoValue: string | null
+): CsvSseRequest {
+  if (!urlValue?.trim()) throw new CsvSseError('INVALID_CSV_URL');
 
   let url: URL;
   try {
     url = new URL(urlValue);
   } catch {
-    throw new CsvSseError("INVALID_CSV_URL");
+    throw new CsvSseError('INVALID_CSV_URL');
   }
 
-  if (
-    !["http:", "https:"].includes(url.protocol) ||
-    url.username ||
-    url.password ||
-    isPrivateHost(url.hostname)
-  ) {
-    throw new CsvSseError("INVALID_CSV_URL");
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || isPrivateHost(url.hostname)) {
+    throw new CsvSseError('INVALID_CSV_URL');
   }
 
-  const batchSize = batchSizeValue === null || batchSizeValue.trim() === ""
-    ? DEFAULT_BATCH_SIZE
-    : Number(batchSizeValue);
+  const batchSize =
+    batchSizeValue === null || batchSizeValue.trim() === '' ? DEFAULT_BATCH_SIZE : Number(batchSizeValue);
 
   if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > MAX_BATCH_SIZE) {
-    throw new CsvSseError("INVALID_BATCH_SIZE");
+    throw new CsvSseError('INVALID_BATCH_SIZE');
   }
 
-  return { url: url.toString(), batchSize };
+  let maxBatches: number | undefined;
+  if (maxBatchesValue !== null && maxBatchesValue.trim() !== '') {
+    maxBatches = Number(maxBatchesValue);
+    if (!Number.isInteger(maxBatches) || maxBatches < 1) {
+      throw new CsvSseError('INVALID_MAX_BATCHES');
+    }
+  }
+
+  let batchNo: number | undefined;
+  if (batchNoValue !== null && batchNoValue.trim() !== '') {
+    batchNo = Number(batchNoValue);
+    if (!Number.isInteger(batchNo) || batchNo < 1) {
+      throw new CsvSseError('INVALID_BATCH_NO');
+    }
+  }
+
+  return { url: url.toString(), batchSize, maxBatches, batchNo };
 }
 
 export async function streamCsv(
@@ -90,7 +105,7 @@ export async function streamCsv(
   });
 
   const parser = parse<Record<string, string>, Record<string, string>>({
-    headers: true,
+    headers: (headers) => headers.map((header) => (header?.trim() ? header : undefined)),
     ignoreEmpty: true,
     strictColumnHandling: true,
     trim: true,
@@ -111,10 +126,25 @@ export async function streamCsv(
         throw new CsvSseError("CSV_ROW_LIMIT_EXCEEDED");
       }
 
-      batch.push(row);
-      if (batch.length === input.batchSize) {
+      const currentBatchNo = batches + 1;
+      const wantCurrentBatch = input.batchNo === undefined || input.batchNo === currentBatchNo;
+      if (wantCurrentBatch) batch.push(row);
+
+      if (processed % input.batchSize === 0) {
         batches += 1;
-        await onBatch(batch.splice(0), processed, batches);
+        if (wantCurrentBatch) {
+          await onBatch(batch.splice(0), processed, batches);
+        }
+        if (input.batchNo !== undefined && batches >= input.batchNo) {
+          byteLimitedBody.destroy();
+          parser.destroy();
+          return { processed, batches };
+        }
+        if (input.maxBatches !== undefined && batches >= input.maxBatches) {
+          byteLimitedBody.destroy();
+          parser.destroy();
+          return { processed, batches };
+        }
       }
     }
 

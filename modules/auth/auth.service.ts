@@ -1,13 +1,22 @@
-import { eq } from "drizzle-orm";
-import { AppCodeByType, ConstKeys, ConstMessages, EncodeBase64, JwtEncode, toViewMapper, type RequestBodyType, type SearchType } from "dff-util";
-import { env, logger, session_user } from "../../utils/app-util";
-import ProfileHashService from "../profile-hash/profile-hash.service";
-import ProfileService from "../profile/profile.service";
-import { profileEntity } from "../profile/profile.entity";
-import OtpVerificationService from "../otp-verification/otp-verification.service";
-import MailService from "../mail/mail.service";
-import AppSettingService from "../app-setting/app-setting.service";
-import { settingText } from "../../utils/app-settings";
+import {
+  AppCodeByType,
+  ConstKeys,
+  ConstMessages,
+  EncodeBase64,
+  toViewMapper,
+  type RequestBodyType,
+  type SearchType,
+} from 'dff-util';
+import { eq } from 'drizzle-orm';
+import { settingText } from '../../utils/app-settings';
+import { logger, session_user } from '../../utils/app-util';
+import AppSettingService from '../app-setting/app-setting.service';
+import JwtService from '../jwt/jwt.service';
+import MailService from '../mail/mail.service';
+import OtpVerificationService from '../otp-verification/otp-verification.service';
+import ProfileHashService from '../profile-hash/profile-hash.service';
+import { profileEntity } from '../profile/profile.entity';
+import ProfileService from '../profile/profile.service';
 import type {
   AuthProfile,
   ForgotPasswordDto,
@@ -18,12 +27,11 @@ import type {
   SignupDto,
   VerificationOtpDto,
   VerifyAccountDto,
-} from "./auth.dto";
-import { AuthProps } from "./auth.dto";
-import { authEntity } from "./auth.entity";
+} from './auth.dto';
+import { AuthProps } from './auth.dto';
+import { authEntity } from './auth.entity';
 
-const DEFAULT_PIC =
-  "https://www.pikpng.com/pngl/m/168-1685824_png-file-transparent-background-person-icon-clipart.png";
+const DEFAULT_PIC = 'https://www.pikpng.com/pngl/m/168-1685824_png-file-transparent-background-person-icon-clipart.png';
 
 export default class AuthService {
   static Db() {
@@ -46,50 +54,42 @@ export default class AuthService {
     return ProfileService.SearchService(input);
   }
 
-  static GetIdType(userid: string): "email" | "mobile" | "id" {
-    if (userid.includes("@")) return "email";
-    if (userid.length > 10 && !isNaN(Number(userid))) return "mobile";
-    return "id";
+  static GetIdType(userid: string): 'email' | 'mobile' | 'id' {
+    if (userid.includes('@')) return 'email';
+    if (userid.length > 10 && !isNaN(Number(userid))) return 'mobile';
+    return 'id';
   }
 
   static async FindProfileByUserid(userid: string): Promise<AuthProfile | null> {
     const idType = this.GetIdType(userid);
-    if (idType === "email") return ProfileService.FindByEmailService(userid) as Promise<AuthProfile | null>;
-    if (idType === "mobile") return ProfileService.FindByMobileService(userid) as Promise<AuthProfile | null>;
+    if (idType === 'email') return ProfileService.FindByEmailService(userid) as Promise<AuthProfile | null>;
+    if (idType === 'mobile') return ProfileService.FindByMobileService(userid) as Promise<AuthProfile | null>;
     const res = await ProfileService.EntityByIdService(userid);
     return (res as AuthProfile) ?? null;
   }
 
   static async generateJwtToken(profile: AuthProfile): Promise<string> {
     const log = logger();
-    const secret = env("API_JWT_SECRET") || "c79cfbf323c17885fe6962b6d8cc150841fe555d1440642b966cae9df1a76af16cf02db292cab8f2faed884338c8ae2be87f9ddcdf0ea1a5049386af7565b2f3";
-    const key = env("API_JWT_KEY") || "X7q#m9$Lp2@zW4v&K1!nB8*jR5%tY6^a";
-    if (!secret || secret === "-") throw new Error("JWT configuration not available");
     try {
-      return JwtEncode(
-        {
-          id: profile.id,
-          email: profile.email,
-          mobile: profile.mobile,
-          name: profile.name,
-          persona: profile.persona,
-          roles: profile.roles,
-          key,
-        },
-        secret
-      );
+      return JwtService.GenerateToken({
+        id: profile.id,
+        email: profile.email,
+        mobile: profile.mobile,
+        name: profile.name,
+        roles: profile.roles
+      });
     } catch {
-      log.error("Failed to generate JWT token", { userId: profile.id });
-      throw new Error("Authentication failed");
+      log.error('Failed to generate JWT token', { userId: profile.id });
+      throw new Error('Authentication failed');
     }
   }
 
   static async SigninService(dto: SigninDto) {
     const log = logger();
-    log.info("Signin attempt", { userid: dto.userid, provider: dto.provider });
+    log.info('Signin attempt', { userid: dto.userid, provider: dto.provider });
 
-    if (dto.provider?.toLowerCase() === "google") {
-      if (!dto.token?.trim()) throw new Error("Google ID token is required");
+    if (dto.provider?.toLowerCase() === 'google') {
+      if (!dto.token?.trim()) throw new Error('Google ID token is required');
       return this.GoogleSignInWithCredential({
         userid: dto.userid,
         token: dto.token,
@@ -107,13 +107,13 @@ export default class AuthService {
     if (!ok) throw new Error(ConstMessages.INVALID_CREDENTIALS);
 
     const token = await this.generateJwtToken(profile);
-    log.info("Signin successful", { userid: dto.userid });
+    log.info('Signin successful', { userid: dto.userid });
     return toViewMapper({ ...profile, token });
   }
 
   static async SignupService(dto: SignupDto) {
     const log = logger();
-    log.info("Signup attempt", { userid: dto.userid, persona: dto.persona });
+    log.info('Signup attempt', { userid: dto.userid, persona: dto.persona });
 
     const existing = await this.FindProfileByUserid(dto.userid);
     if (existing?.active) throw new Error(AuthProps.USER_ALREADY_EXISTS);
@@ -122,27 +122,27 @@ export default class AuthService {
     const profileId = existing?.id || dto.id || AppCodeByType(dto.name);
     const saved = await ProfileService.SaveService({
       id: profileId,
-      name: dto.name || existing?.name || "-",
-      nameLang: { "en-US": dto.name || "-" },
-      email: idType === "email" ? dto.userid : dto.email || existing?.email || "-",
-      mobile: idType === "mobile" ? dto.userid : dto.mobile || existing?.mobile || "-",
-      telCode: dto.telCode || "-",
+      name: dto.name || existing?.name || '-',
+      nameLang: { 'en-US': dto.name || '-' },
+      email: idType === 'email' ? dto.userid : dto.email || existing?.email || '-',
+      mobile: idType === 'mobile' ? dto.userid : dto.mobile || existing?.mobile || '-',
+      telCode: dto.telCode || '-',
       pic: dto.pic || DEFAULT_PIC,
-      persona: dto.persona || "user",
-      roles: ["user"],
+      persona: dto.persona || 'user',
+      roles: ['DEFAULT_ROLE'],
       active: false,
       isEmailVerified: false,
       isMobileVerified: false,
       password: dto.password,
-      provider: dto.provider || "password",
+      provider: dto.provider || 'password',
     });
 
     const profile = saved as AuthProfile;
     const otpRes = await this.issueOtp(dto.userid, profile.name, {
       lang: dto.lang?.[0],
-      templateId: "otp-email",
+      templateId: 'otp-email',
     });
-    log.info("User created", { id: profile.id, otpId: otpRes?.id });
+    log.info('User created', { id: profile.id, otpId: otpRes?.id });
     return {
       message: AuthProps.SIGNUP_SUCCESSFULLY,
       otpId: otpRes?.id,
@@ -152,20 +152,15 @@ export default class AuthService {
     };
   }
 
-  static async SendAuthMail(
-    to: string,
-    templateId: string,
-    lang: string | undefined,
-    data: RequestBodyType
-  ) {
-    if (this.GetIdType(to) !== "email") return;
+  static async SendAuthMail(to: string, templateId: string, lang: string | undefined, data: RequestBodyType) {
+    if (this.GetIdType(to) !== 'email') return;
     const log = logger();
     try {
-      const branding = await AppSettingService.DataByIdService("branding_company");
-      const logoUrl = settingText(branding, "logo_url");
+      const branding = await AppSettingService.DataByIdService('branding_company');
+      const logoUrl = settingText(branding, 'logo_url');
       await MailService.SendService({
         templateId,
-        lang: lang || "en-US",
+        lang: lang || 'en-US',
         to,
         data: {
           ...(logoUrl ? { logoUrl } : {}),
@@ -177,14 +172,10 @@ export default class AuthService {
     }
   }
 
-  static async issueOtp(
-    uid: string,
-    _name?: string,
-    options?: { lang?: string; templateId?: string }
-  ) {
+  static async issueOtp(uid: string, _name?: string, options?: { lang?: string; templateId?: string }) {
     const otpRes = await OtpVerificationService.CreateOtpService({ uid });
     if (otpRes?.otp) {
-      await this.SendAuthMail(uid, options?.templateId || "otp-email", options?.lang, {
+      await this.SendAuthMail(uid, options?.templateId || 'otp-email', options?.lang, {
         otp: otpRes.otp,
       });
     }
@@ -196,7 +187,7 @@ export default class AuthService {
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);
     const otpRes = await this.issueOtp(dto.userid, profile.name, {
       lang: dto.lang,
-      templateId: "otp-email",
+      templateId: 'otp-email',
     });
     return { otpId: otpRes?.id, uid: dto.userid, message: ConstKeys.EMAIL_SENT };
   }
@@ -210,10 +201,10 @@ export default class AuthService {
 
     await ProfileHashService.SaveService({
       id: profile.id,
-      provider: "password",
+      provider: 'password',
       password: dto.password,
     });
-    await this.SendAuthMail(dto.userid, "reset-password-success", undefined, {});
+    await this.SendAuthMail(dto.userid, 'reset-password-success', undefined, {});
     return { message: AuthProps.PASSWORD_RESET_SUCCESSFUL };
   }
 
@@ -232,10 +223,10 @@ export default class AuthService {
       email: profile.email,
       mobile: profile.mobile,
       active: true,
-      isEmailVerified: idType === "email" ? true : profile.isEmailVerified,
-      isMobileVerified: idType === "mobile" ? true : profile.isMobileVerified,
+      isEmailVerified: idType === 'email' ? true : profile.isEmailVerified,
+      isMobileVerified: idType === 'mobile' ? true : profile.isMobileVerified,
     });
-    return { message: "Account verified successfully", verificationType: idType };
+    return { message: 'Account verified successfully', verificationType: idType };
   }
 
   static async VerifyOtpService(dto: VerificationOtpDto) {
@@ -257,8 +248,8 @@ export default class AuthService {
       email: profile.email,
       mobile: profile.mobile,
       active: true,
-      isEmailVerified: idType === "email" ? true : profile.isEmailVerified,
-      isMobileVerified: idType === "mobile" ? true : profile.isMobileVerified,
+      isEmailVerified: idType === 'email' ? true : profile.isEmailVerified,
+      isMobileVerified: idType === 'mobile' ? true : profile.isMobileVerified,
     });
 
     if (dto.navigate) {
@@ -273,17 +264,17 @@ export default class AuthService {
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);
     const otpRes = await this.issueOtp(dto.userid, profile.name, {
       lang: dto.lang,
-      templateId: "otp-email",
+      templateId: 'otp-email',
     });
     return { message: AuthProps.OTP_SENT, otpId: otpRes?.id, uid: dto.userid };
   }
 
   static decodeGoogleToken(token: string): { email: string; name?: string; picture?: string } {
-    const parts = token.split(".");
-    if (parts.length < 2) throw new Error("Invalid Google ID token");
-    const json = Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+    const parts = token.split('.');
+    if (parts.length < 2) throw new Error('Invalid Google ID token');
+    const json = Buffer.from(parts[1].replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
     const payload = JSON.parse(json) as { email?: string; name?: string; picture?: string };
-    if (!payload.email) throw new Error("Google token missing email");
+    if (!payload.email) throw new Error('Google token missing email');
     return { email: payload.email, name: payload.name, picture: payload.picture };
   }
 
@@ -293,7 +284,7 @@ export default class AuthService {
     try {
       payload = this.decodeGoogleToken(dto.token);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error";
+      const message = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Google sign in failed: ${message}`);
     }
     if (payload.email.toLowerCase() !== dto.userid.toLowerCase()) {
@@ -303,48 +294,50 @@ export default class AuthService {
       email: payload.email,
       name: payload.name || payload.email,
       pic: payload.picture,
-      persona: dto.persona || "user",
+      persona: dto.persona || 'user',
     });
   }
 
-  static async GoogleSigninService(dto: {
-    email: string;
-    name: string;
-    pic?: string;
-    persona: string;
-  }) {
+  static async GoogleSigninService(dto: { email: string; name: string; pic?: string; persona: string }) {
     const log = logger();
-    let user = await ProfileService.FindByEmailService(dto.email) as AuthProfile | null;
+    let user = (await ProfileService.FindByEmailService(dto.email)) as AuthProfile | null;
     if (user && !user.active) throw new Error(AuthProps.USER_NOT_ACTIVE);
 
     if (!user) {
       const saved = await ProfileService.SaveService({
         name: dto.name || dto.email,
-        nameLang: { "en-US": dto.name || dto.email },
+        nameLang: { 'en-US': dto.name || dto.email },
         email: dto.email,
-        mobile: "-",
-        telCode: "-",
+        mobile: '-',
+        telCode: '-',
         pic: dto.pic || DEFAULT_PIC,
         persona: dto.persona,
-        roles: ["user"],
+        roles: ['user'],
         active: true,
         isEmailVerified: true,
         isMobileVerified: false,
         password: EncodeBase64(dto.email),
-        provider: "google",
+        provider: 'google',
       });
       user = saved as AuthProfile;
     }
 
     const token = await this.generateJwtToken(user);
-    log.info("Google signin successful", { email: dto.email });
-    return toViewMapper({ ...user, token, provider: "google" });
+    log.info('Google signin successful', { email: dto.email });
+    return toViewMapper({ ...user, token, provider: 'google' });
   }
 
   static async AccountDeleteService(userid: string) {
     const currentUser = session_user();
     const roles: string[] = currentUser?.roles || [];
-    const isAdmin = ["DEALER_ADMIN", "SUPER_ADMIN", "ADMIN_ADMIN", "TRADER_ADMIN", "RETAILER_ADMIN", "TENANT_ADMIN"].some((r) => roles.includes(r));
+    const isAdmin = [
+      'DEALER_ADMIN',
+      'SUPER_ADMIN',
+      'ADMIN_ADMIN',
+      'TRADER_ADMIN',
+      'RETAILER_ADMIN',
+      'TENANT_ADMIN',
+    ].some((r) => roles.includes(r));
     if (!isAdmin && currentUser?.id !== userid) throw { message: ConstKeys.UNAUTHORIZED };
 
     const profile = await this.FindProfileByUserid(userid);
@@ -356,9 +349,9 @@ export default class AuthService {
         email: `${profile.email}_${profile.id}_deleted`,
         mobile: `${profile.mobile}_${profile.id}_deleted`,
         active: false,
-        roles: ["none"],
+        roles: ['NONE'],
         updated_at: new Date(),
-        updated_by: currentUser?.id ?? "System",
+        updated_by: currentUser?.id ?? 'System',
       })
       .where(eq(profileEntity.id, profile.id));
 

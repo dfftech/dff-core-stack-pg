@@ -1,0 +1,32 @@
+# Environment
+@hosturl = http://localhost:4000
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiJBUElfSldUX0tFWSIsImNyZWF0ZWRBdCI6IjIwMjYtMTEtMDVUMDY6Mzk6MjkuODkyWiIsInRlbmFudCI6ImxvY2FsIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwiaWQiOiJVU0VSX0lEIiwibmFtZSI6IlVzZXIgTmFtZSIsInJvbGVzIjpbIkRFRkFVTFRfUk9MRSJdLCJleHAiOjE3OTM4NjE2Njl9.4WakE1-OeKL-nCe2s-YX64c16u6NoMlMqP7H1gFGUvI
+@xTenantId = local
+
+### 1. Generate Token
+POST {{hosturl}}/jwt-generate
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "USER_ID",
+  "roles": ["DEFAULT_ROLE"],
+  "email": "user@example.com",
+  "name": "User Name"
+}
+
+### 2. Verify Token
+POST {{hosturl}}/jwt-verify
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "token": "{{authToken}}"
+}
+
+### 3. Regenerate Token
+GET {{hosturl}}/jwt-regenerate
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

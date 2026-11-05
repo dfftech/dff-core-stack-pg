@@ -1,44 +1,35 @@
-import { APIError, ErrCode, middleware } from "encore.dev/api";
-import { JwtDecode, type ResponseType, type SessionInfo } from "dff-util";
-import { createKafkaLogger, initKafkaProducer } from "./kafka-logger";
+import type { ResponseType, SessionInfo } from 'dff-util';
+import { APIError, middleware } from 'encore.dev/api';
+import JwtService from '../modules/jwt/jwt.service';
+import { createKafkaLogger, initKafkaProducer } from './kafka-logger';
 initKafkaProducer();
 export const LoggingMiddleware = middleware(async (req, next) => {
   const startTime = Date.now();
   const callMeta = req.requestMeta as any;
-  const tenantId = callMeta?.headers?.["x-tenant-id"];
-  const branchId = String(callMeta?.headers?.["x-branch-id"] ?? "").trim() || undefined;
-  const requestId = callMeta?.headers?.["request-id"] || crypto.randomUUID();
-  const traceId = callMeta?.headers?.["x-encore-trace-id"];
+  const tenantId = callMeta?.headers?.['x-tenant-id'];
+  const branchId = String(callMeta?.headers?.['x-branch-id'] ?? '').trim() || undefined;
+  const requestId = callMeta?.headers?.['request-id'] || crypto.randomUUID();
+  const traceId = callMeta?.headers?.['x-encore-trace-id'];
   let sessionUser: SessionInfo;
 
   try {
-    const token = (callMeta?.headers?.["authorization"] as string)
-      ?.replace(/bearer|jwt/i, "")
-      .trim();
-    sessionUser = token
-      ? (JwtDecode(token) as SessionInfo)
-      : ({ id: "unknown" } as SessionInfo);
+    const token = (callMeta?.headers?.['authorization'] as string)?.replace(/bearer|jwt/i, '').trim();
+    sessionUser = token ? JwtService.DecodeToken(token) : ({ id: 'unknown' } as SessionInfo);
     req.data.token = token;
   } catch {
-    sessionUser = { id: "unknown" } as SessionInfo;
+    sessionUser = { id: 'unknown' } as SessionInfo;
   }
 
   sessionUser.requestId = requestId;
 
-  const logger = createKafkaLogger(
-    requestId,
-    traceId,
-    sessionUser.id,
-    tenantId,
-    branchId
-  );
+  const logger = createKafkaLogger(requestId, traceId, sessionUser.id, tenantId, branchId);
   req.data.tenant_id = tenantId;
   req.data.branch_id = branchId;
   req.data.session_user = sessionUser;
   req.data.request_id = requestId;
   req.data.logger = logger;
 
-  await logger.info("Request started", {
+  await logger.info('Request started', {
     method: callMeta?.method,
     path: callMeta?.pathAndQuery || callMeta?.path,
   });
@@ -46,7 +37,7 @@ export const LoggingMiddleware = middleware(async (req, next) => {
   try {
     const response = await next(req);
     const payload = response.payload as ResponseType | null | undefined;
-    if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
       payload.meta = {
         requestId,
         timestamp: new Date().toISOString(),
@@ -54,21 +45,19 @@ export const LoggingMiddleware = middleware(async (req, next) => {
         ...payload.meta,
       };
     }
-    response.header.set("request-id", requestId);
-    response.header.set("session-user-id", sessionUser.id);
+    response.header.set('request-id', requestId);
+    response.header.set('session-user-id', sessionUser.id);
 
     if (traceId) {
-      response.header.set("X-Encore-Trace-Id", traceId);
+      response.header.set('X-Encore-Trace-Id', traceId);
     }
 
-    await logger.info("Request completed", response);
-    await logger.info(
-      "Completed request duration(sec): "+ ((Date.now() - startTime) / 1000)
-    );
+    await logger.info('Request completed', response);
+    await logger.info('Completed request duration(sec): ' + (Date.now() - startTime) / 1000);
     return response;
   } catch (err: any) {
-     err = err.error || err;
-    await logger.error("Request failed", {
+    err = err.error || err;
+    await logger.error('Request failed', {
       error_message: err.message,
       error_cause: err.cause?.message,
       error_code: err.cause?.code,
@@ -76,9 +65,7 @@ export const LoggingMiddleware = middleware(async (req, next) => {
       error_stack: err.stack,
     });
 
-    await logger.info(
-      "Completed request duration(sec): " + ((Date.now() - startTime) / 1000)
-    );
+    await logger.info('Completed request duration(sec): ' + (Date.now() - startTime) / 1000);
     throw APIError.unknown(err.message || err);
   }
 });

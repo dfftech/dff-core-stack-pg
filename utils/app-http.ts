@@ -1,18 +1,17 @@
-import { Http, JwtEncode, type SessionInfo, toKebabCase } from 'dff-util';
+import { Http, toKebabCase, type SessionInfo } from 'dff-util';
+import JwtService from '../modules/jwt/jwt.service';
 import { env, env_base_name, session_meta, session_user } from './app-util';
 
-const API_JWT_SECRET = env("API_JWT_SECRET") || '-';
-const API_JWT_KEY = env("API_JWT_KEY") || '-';
-const API_BASE_URL = env("API_BASE_URL") || '-';
+const API_BASE_URL = env('API_BASE_URL') || '-';
 
 export default class AppHttp {
   static MsUrl = {
-    base: env("MS_BASE_URL") || API_BASE_URL + '/'+toKebabCase(env_base_name())+'-base/',
-    auth: env("MS_AUTH_URL") || API_BASE_URL + '/'+toKebabCase(env_base_name())+'-auth/',
-    util: env("MS_UTIL_URL") || API_BASE_URL + '/'+toKebabCase(env_base_name())+'-util/',
-    main: env("MS_MAIN_URL") || API_BASE_URL + '/'+toKebabCase(env_base_name())+'-main/',
-    sor: env("MS_SOR_URL") || API_BASE_URL + '/'+toKebabCase(env_base_name())+'-sor/',
-    events: env("MS_EVENTS_URL") || API_BASE_URL + '/'+toKebabCase(env_base_name())+'-events/'
+    base: env('MS_BASE_URL') || API_BASE_URL + '/' + toKebabCase(env_base_name()) + '-base/',
+    auth: env('MS_AUTH_URL') || API_BASE_URL + '/' + toKebabCase(env_base_name()) + '-auth/',
+    util: env('MS_UTIL_URL') || API_BASE_URL + '/' + toKebabCase(env_base_name()) + '-util/',
+    main: env('MS_MAIN_URL') || API_BASE_URL + '/' + toKebabCase(env_base_name()) + '-main/',
+    sor: env('MS_SOR_URL') || API_BASE_URL + '/' + toKebabCase(env_base_name()) + '-sor/',
+    events: env('MS_EVENTS_URL') || API_BASE_URL + '/' + toKebabCase(env_base_name()) + '-events/',
   };
 
   static AUTHORIZATION_TOKEN: string | undefined = undefined;
@@ -28,9 +27,12 @@ export default class AppHttp {
       ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
-      "HTTP GET Call: " + url +
-      ", params: " + JSON.stringify(params || {}) +
-      ", headers: " + JSON.stringify(headers || {})
+      'HTTP GET Call: ' +
+        url +
+        ', params: ' +
+        JSON.stringify(params || {}) +
+        ', headers: ' +
+        JSON.stringify(headers || {})
     );
     return await Http.Get(url, params, headers);
   }
@@ -46,9 +48,12 @@ export default class AppHttp {
       ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
-      "HTTP POST Call: " + url +
-      ", params: " + JSON.stringify(params || {}) +
-      ", headers: " + JSON.stringify(headers || {})
+      'HTTP POST Call: ' +
+        url +
+        ', params: ' +
+        JSON.stringify(params || {}) +
+        ', headers: ' +
+        JSON.stringify(headers || {})
     );
     return await Http.Post(url, params, headers);
   }
@@ -64,9 +69,12 @@ export default class AppHttp {
       ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
-      "HTTP PUT Call: " + url +
-      ", params: " + JSON.stringify(params || {}) +
-      ", headers: " + JSON.stringify(headers || {})
+      'HTTP PUT Call: ' +
+        url +
+        ', params: ' +
+        JSON.stringify(params || {}) +
+        ', headers: ' +
+        JSON.stringify(headers || {})
     );
     return await Http.Put(url, params, headers);
   }
@@ -82,18 +90,22 @@ export default class AppHttp {
       ...(branch_id ? { 'x-branch-id': branch_id } : {}),
     };
     logger.info(
-      "HTTP DELETE Call: " + url +
-      ", params: " + JSON.stringify(params || {}) +
-      ", headers: " + JSON.stringify(headers || {})
+      'HTTP DELETE Call: ' +
+        url +
+        ', params: ' +
+        JSON.stringify(params || {}) +
+        ', headers: ' +
+        JSON.stringify(headers || {})
     );
     return await Http.Delete(url, params, headers);
   }
 
   static async Token() {
     const session: SessionInfo = session_user();
-    session.key = API_JWT_KEY;
-    session.roles = ['api'];
-    session.type = 'api';
-    return JwtEncode(session, API_JWT_SECRET);
+    return JwtService.GenerateToken({
+      ...session,
+      roles: ['api'],
+      type: 'api',
+    });
   }
 }

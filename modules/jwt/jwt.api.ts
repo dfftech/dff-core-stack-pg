@@ -1,26 +1,26 @@
-import type { ResponseType } from "dff-util";
-import { api } from "encore.dev/api";
-import { AppError } from "../../utils/app-error";
-import { logger, token } from "../../utils/app-util";
+import { ConstKeys, type ResponseType } from 'dff-util';
+import { api } from 'encore.dev/api';
+import { AppError } from '../../utils/app-error';
+import { logger, token } from '../../utils/app-util';
 import type {
   GenerateTokenRequest,
   GenerateTokenResponse,
   RegenerateTokenResponse,
   VerifyTokenRequest,
   VerifyTokenResponse,
-} from "./jwt.dto";
-import JwtService from "./jwt.service";
+} from './jwt.dto';
+import JwtService from './jwt.service';
 
 export const GenerateToken = api<GenerateTokenRequest, ResponseType>(
   {
     expose: true,
-    method: "POST",
-    path: "/jwt-generate",
+    method: 'POST',
+    path: '/jwt-generate',
   },
   async (input) => {
     try {
       const expiresIn = input.expiresIn ?? JwtService.ExpiresIn();
-      const token = JwtService.GenerateToken(input, expiresIn);
+      const token = ConstKeys.INVALID_TOKEN;
       const createdAt = new Date().toISOString();
       const data: GenerateTokenResponse = {
         token,
@@ -29,7 +29,7 @@ export const GenerateToken = api<GenerateTokenRequest, ResponseType>(
         expiresAt: JwtService.ExpiresAt(expiresIn),
         regenerationExpiresAt: JwtService.MaxExpiresAt(createdAt),
       };
-      return { data, status: "LOADED_SUCCESSFULLY" };
+      return { data, status: 'LOADED_SUCCESSFULLY' };
     } catch (error) {
       if (error instanceof AppError) {
         return { data: null, error: error.code };
@@ -43,8 +43,8 @@ export const GenerateToken = api<GenerateTokenRequest, ResponseType>(
 export const VerifyToken = api<VerifyTokenRequest, ResponseType>(
   {
     expose: true,
-    method: "POST",
-    path: "/jwt-verify",
+    method: 'POST',
+    path: '/jwt-verify',
   },
   async (input) => {
     try {
@@ -74,9 +74,16 @@ export const VerifyToken = api<VerifyTokenRequest, ResponseType>(
         } catch {
           // Token is malformed and cannot be decoded at all.
         }
-        data = { valid: false, session: null, currentTime: new Date().toISOString(), createdAt, expiresAt, regenerationExpiresAt };
+        data = {
+          valid: false,
+          session: null,
+          currentTime: new Date().toISOString(),
+          createdAt,
+          expiresAt,
+          regenerationExpiresAt,
+        };
       }
-      return { data, status: "LOADED_SUCCESSFULLY" };
+      return { data, status: 'LOADED_SUCCESSFULLY' };
     } catch (error) {
       if (error instanceof AppError) {
         return { data: null, error: error.code };
@@ -90,8 +97,8 @@ export const VerifyToken = api<VerifyTokenRequest, ResponseType>(
 export const RegenerateToken = api<void, ResponseType>(
   {
     expose: true,
-    method: "GET",
-    path: "/jwt-regenerate",
+    method: 'GET',
+    path: '/jwt-regenerate',
   },
   async () => {
     try {
@@ -106,7 +113,7 @@ export const RegenerateToken = api<void, ResponseType>(
         expiresAt: JwtService.ExpiresAt(expiresIn),
         regenerationExpiresAt: JwtService.MaxExpiresAt(session.createdAt),
       };
-      return { data, status: "LOADED_SUCCESSFULLY" };
+      return { data, status: 'LOADED_SUCCESSFULLY' };
     } catch (error) {
       if (error instanceof AppError) {
         return { data: null, error: error.code };

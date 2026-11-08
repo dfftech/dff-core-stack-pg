@@ -1,7 +1,7 @@
 import { and, count, eq, ilike, sql, type SQL } from "drizzle-orm";
 import { AppUUID4, toEntityMapper, toViewMapper, type SearchType } from "dff-util";
 import { logger, session_db, session_user } from "../../utils/app-util";
-import type { OtpVerificationDto, VerifyOtpDto } from "./otp-verification.dto";
+import type { OtpVerificationDto, OtpVerificationView, VerifyOtpDto } from "./otp-verification.dto";
 import { otpVerificationEntity, type OtpVerificationEntity } from "./otp-verification.entity";
 
 const OTP_EXPIRY_MINUTES = 5;
@@ -49,13 +49,20 @@ export default class OtpVerificationService {
     return view;
   }
 
-  static async GetOtpService(id: string): Promise<OtpVerificationEntity | null> {
+  /** Internal-only: fetch the raw entity row, used where the DB (snake_case) shape is needed for further writes. */
+  static async FindEntityById(id: string): Promise<OtpVerificationEntity | null> {
     const rows = await this.Db()
       .select()
       .from(otpVerificationEntity)
       .where(eq(otpVerificationEntity.id, id))
       .limit(1);
     return rows[0] ?? null;
+  }
+
+  static async GetOtpService(id: string): Promise<OtpVerificationView | null> {
+    const entity = await this.FindEntityById(id);
+    if (!entity) return null;
+    return toViewMapper(entity) as OtpVerificationView;
   }
 
   static async SaveService(dto: OtpVerificationDto) {
@@ -93,13 +100,13 @@ export default class OtpVerificationService {
       otp: dto.otp,
       isVerified: false,
     });
-    const row = await this.GetOtpService((result as { id: string }).id);
+    const row = await this.FindEntityById((result as { id: string }).id);
     return row ? (toViewMapper(row) as OtpVerificationDto & { id: string; otp: string }) : null;
   }
 
   static async VerifyOtpService(dto: VerifyOtpDto) {
     const log = logger();
-    const record = await this.GetOtpService(dto.id);
+    const record = await this.FindEntityById(dto.id);
     if (!record) return { verified: false, message: "OTP not found" };
     if (record.uid !== dto.uid) return { verified: false, message: "OTP uid mismatch" };
     if (record.is_verified) return { verified: false, message: "OTP already verified" };

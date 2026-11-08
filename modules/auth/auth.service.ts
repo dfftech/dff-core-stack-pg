@@ -194,7 +194,7 @@ export default class AuthService {
 
   static async ResetPasswordService(dto: ResetPasswordDto) {
     const otpRecord = await OtpVerificationService.GetOtpService(dto.otpId);
-    if (!otpRecord || !otpRecord.is_verified) throw new Error(AuthProps.REVERIFY_OTP);
+    if (!otpRecord || !otpRecord.isVerified) throw new Error(AuthProps.REVERIFY_OTP);
 
     const profile = await this.FindProfileByUserid(dto.userid);
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);
@@ -210,7 +210,7 @@ export default class AuthService {
 
   static async VerifyAccountService(dto: VerifyAccountDto) {
     const otpRecord = await OtpVerificationService.GetOtpService(dto.otpId);
-    if (!otpRecord || !otpRecord.is_verified) throw new Error(AuthProps.REVERIFY_OTP);
+    if (!otpRecord || !otpRecord.isVerified) throw new Error(AuthProps.REVERIFY_OTP);
 
     const profile = await this.FindProfileByUserid(dto.userid);
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);

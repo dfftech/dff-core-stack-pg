@@ -1,0 +1,12 @@
+node_modules
+.encore
+encore.gen
+.git
+.DS_Store
+*.tsbuildinfo
+dist
+build
+coverage
+.env
+.env.*
+docs

@@ -20,7 +20,7 @@ RUN mkdir -p /out/.encore \
     && chmod +x /out/.encore/bin/encore \
     && /out/.encore/bin/encore version update
 
-FROM oven/bun:1-slim
+FROM node:22-slim
 ENTRYPOINT []
 
 COPY --from=encore-fetch /out/.encore /root/.encore
@@ -32,8 +32,8 @@ ENV CI=1
 WORKDIR /app
 
 COPY package.json ./
-# Install the package.json-pinned Encore runtime without using a lockfile.
-RUN bun install --no-save
+# Encore's TS toolchain shells out to npm/node, so use a Node base image.
+RUN npm install --no-package-lock --no-audit --no-fund
 
 COPY . .
 RUN encore check

@@ -6,12 +6,14 @@ export const MAX_CSV_ROWS = 100_000;
 export type CsvSseRequest = {
   url: string;
   topic: string;
+  key?: string;
   batchSize?: number;
   maxBatches?: number;
   batchNo?: number;
 };
 
 export type NormalizedCsvSseRequest = CsvSseRequest & {
+  key: string;
   batchSize: number;
 };
 
@@ -33,10 +35,6 @@ export type CsvSseTopicMessage = {
   /** Requested CSV rows per emitted batch. */
   limit: number;
   processed: number;
-  batch: number;
-  batches: number;
-  /** Available on ACTION_COMPLETED once the stream has ended. */
-  totalBatches?: number;
   data: Record<string, string>[];
   error: CsvSseRecordError[] | { code: string }[];
 };

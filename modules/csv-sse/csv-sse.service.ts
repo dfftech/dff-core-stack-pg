@@ -1,6 +1,7 @@
 import { ConstKeys } from 'dff-util';
 import log from 'encore.dev/log';
 import { parse } from 'fast-csv';
+import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { AppError } from '../../utils/app-error';
 import { session_meta } from '../../utils/app-util';
@@ -81,7 +82,8 @@ async function processCsv(
           context.batches,
           context.recordErrors,
           kafkaContext,
-          input.batchSize
+          input.batchSize,
+          input.key
         );
       }
       if (
@@ -103,19 +105,17 @@ async function processCsv(
         context.batches,
         context.recordErrors,
         kafkaContext,
-        input.batchSize
+        input.batchSize,
+        input.key
       );
     }
 
-    await kafkaPublish(input.topic, null, {
+    await kafkaPublish(input.topic, input.key, {
       event: ConstKeys.ACTION_COMPLETED,
       tenant: kafkaContext.tenant,
       branch: kafkaContext.branch,
       limit: input.batchSize,
       processed: context.processed,
-      batch: context.batches,
-      batches: context.batches,
-      totalBatches: context.batches,
       data: [],
       error: takeRecordErrors(context.recordErrors),
     });
@@ -123,14 +123,12 @@ async function processCsv(
     byteLimitedBody.destroy();
     parser.destroy();
     const code = error instanceof CsvProcessingError ? error.code : 'CSV_PROCESSING_FAILED';
-    await kafkaPublish(input.topic, null, {
+    await kafkaPublish(input.topic, input.key, {
       event: ConstKeys.OPERATION_FAILED,
       tenant: kafkaContext.tenant,
       branch: kafkaContext.branch,
       limit: input.batchSize,
       processed: context.processed,
-      batch: context.batches,
-      batches: context.batches,
       data: [],
       error: [{ code }],
     });
@@ -168,19 +166,18 @@ async function publishCsvBatch(
   topic: string,
   data: Record<string, string>[],
   processed: number,
-  batches: number,
+  _batches: number,
   recordErrors: CsvSseRecordError[],
   kafkaContext: CsvKafkaContext,
-  limit: number
+  limit: number,
+  key: string
 ): Promise<void> {
-  await kafkaPublish(topic, String(batches), {
+  await kafkaPublish(topic, key, {
     event: ConstKeys.PROCESSING,
     tenant: kafkaContext.tenant,
     branch: kafkaContext.branch,
     limit,
     processed,
-    batch: batches,
-    batches,
     data,
     error: takeRecordErrors(recordErrors),
   });
@@ -216,7 +213,8 @@ async function validateCSV(input: CsvSseRequest): Promise<{ request: NormalizedC
     throw new AppError('INVALID_BATCH_NO');
   }
 
-  const request = { ...input, url: url.toString(), topic: input.topic.trim(), batchSize };
+  const key = input.key?.trim() || randomUUID();
+  const request = { ...input, url: url.toString(), topic: input.topic.trim(), key, batchSize };
   const response = await fetch(request.url, {
     redirect: 'error',
     headers: { Accept: 'text/csv,application/csv,text/plain;q=0.9,*/*;q=0.1' },

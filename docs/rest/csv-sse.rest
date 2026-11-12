@@ -10,13 +10,14 @@
 # `batchNo` optionally emits only the specified batch.
 # The immediate response has status `DOWNLOAD_STARTED`. Kafka messages contain
 # PROCESSING batches followed by ACTION_COMPLETED, or OPERATION_FAILED on error.
+# The ACTION_COMPLETED message includes `totalBatches`.
 POST {{hosturl}}/csv-sse
 Content-Type: application/json
 x-tenant-id: {{xTenantId}}
 
 {
-  "url": "https://dtf-boltnbolt-nprd.s3.ca-central-1.amazonaws.com/local/raghu/PRODUCT_AUTO.csv",
-  "topic": "csv-import-results",
+  "url": "https://dtf-boltnbolt-nprd.s3.ca-central-1.amazonaws.com/local/raghu/PRODUCT_MAIN.csv",
+  "topic": "test-csv-import-results",
   "batchSize": 10,
   "maxBatches": 5
 }

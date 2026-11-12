@@ -17,7 +17,15 @@ export const CsvSse = api<CsvSseRequest, ResponseType>(
       const data = await CsvSseService.StartService(input);
       return { data, status: 'DOWNLOAD_STARTED' };
     } catch (error) {
-      if (error instanceof AppError) return { data: null, error: error.code };
+      if (error instanceof AppError) {
+        return {
+          status: error.code,
+          error: {
+            message: error.message,
+            stack: error.stack,
+          },
+        };
+      }
       logger().error(`Failed to start CSV download: ${error}`);
       throw error;
     }

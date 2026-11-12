@@ -3,6 +3,7 @@ import log from 'encore.dev/log';
 import { parse } from 'fast-csv';
 import { Readable } from 'node:stream';
 import { AppError } from '../../utils/app-error';
+import { session_meta } from '../../utils/app-util';
 import { kafkaPublish } from '../../utils/kafka-util';
 import {
   DEFAULT_BATCH_SIZE,
@@ -27,11 +28,14 @@ const PRIVATE_IPV4_RANGES = [
 
 export default class CsvSseService {
   static async StartService(input: CsvSseRequest): Promise<CsvSseStartResult> {
+    const { tenant_id: tenant, branch_id: branch } = session_meta();
     const { request, response } = await validateCSV(input);
 
-    void processCsv(request, response).catch((error: unknown) => {
+    void processCsv(request, response, { tenant, branch }).catch((error: unknown) => {
       log.error('CSV background processing failed', {
         topic: request.topic,
+        tenant,
+        branch,
         error: errorMessage(error),
       });
     });
@@ -40,7 +44,11 @@ export default class CsvSseService {
   }
 }
 
-async function processCsv(input: NormalizedCsvSseRequest, response: Response): Promise<void> {
+async function processCsv(
+  input: NormalizedCsvSseRequest,
+  response: Response,
+  kafkaContext: CsvKafkaContext
+): Promise<void> {
   const byteLimitedBody = Readable.fromWeb(response.body as never);
   const parser = parse<Record<string, string>, Record<string, string>>({
     headers: normalizeHeaders,
@@ -71,7 +79,9 @@ async function processCsv(input: NormalizedCsvSseRequest, response: Response): P
           context.batch.splice(0),
           context.processed,
           context.batches,
-          context.recordErrors
+          context.recordErrors,
+          kafkaContext,
+          input.batchSize
         );
       }
       if (
@@ -91,14 +101,21 @@ async function processCsv(input: NormalizedCsvSseRequest, response: Response): P
         context.batch.splice(0),
         context.processed,
         context.batches,
-        context.recordErrors
+        context.recordErrors,
+        kafkaContext,
+        input.batchSize
       );
     }
 
     await kafkaPublish(input.topic, null, {
       event: ConstKeys.ACTION_COMPLETED,
+      tenant: kafkaContext.tenant,
+      branch: kafkaContext.branch,
+      limit: input.batchSize,
       processed: context.processed,
+      batch: context.batches,
       batches: context.batches,
+      totalBatches: context.batches,
       data: [],
       error: takeRecordErrors(context.recordErrors),
     });
@@ -108,7 +125,11 @@ async function processCsv(input: NormalizedCsvSseRequest, response: Response): P
     const code = error instanceof CsvProcessingError ? error.code : 'CSV_PROCESSING_FAILED';
     await kafkaPublish(input.topic, null, {
       event: ConstKeys.OPERATION_FAILED,
+      tenant: kafkaContext.tenant,
+      branch: kafkaContext.branch,
+      limit: input.batchSize,
       processed: context.processed,
+      batch: context.batches,
       batches: context.batches,
       data: [],
       error: [{ code }],
@@ -138,16 +159,27 @@ class CsvStreamContext {
   };
 }
 
+type CsvKafkaContext = {
+  tenant?: string;
+  branch?: string;
+};
+
 async function publishCsvBatch(
   topic: string,
   data: Record<string, string>[],
   processed: number,
   batches: number,
-  recordErrors: CsvSseRecordError[]
+  recordErrors: CsvSseRecordError[],
+  kafkaContext: CsvKafkaContext,
+  limit: number
 ): Promise<void> {
   await kafkaPublish(topic, String(batches), {
     event: ConstKeys.PROCESSING,
+    tenant: kafkaContext.tenant,
+    branch: kafkaContext.branch,
+    limit,
     processed,
+    batch: batches,
     batches,
     data,
     error: takeRecordErrors(recordErrors),

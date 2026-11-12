@@ -14,7 +14,7 @@
   "dependencies": {
     "dff-util": "^1.4.5",
     "drizzle-orm": "^0.45.2",
-    "encore.dev": "1.58.4",
+    "encore.dev": "1.58.8",
     "fast-csv": "^5.0.8",
     "kafkajs": "^2.2.4",
     "marked": "^18.1.1",

@@ -76,7 +76,7 @@ export default class AuthService {
         email: profile.email,
         mobile: profile.mobile,
         name: profile.name,
-        roles: profile.roles
+        roles: profile.roles,
       });
     } catch {
       log.error('Failed to generate JWT token', { userId: profile.id });

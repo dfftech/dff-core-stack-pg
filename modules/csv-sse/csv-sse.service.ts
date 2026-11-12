@@ -1,12 +1,19 @@
-import { parse } from "fast-csv";
-import { Readable } from "node:stream";
+import { ConstKeys } from 'dff-util';
+import log from 'encore.dev/log';
+import { parse } from 'fast-csv';
+import { Readable } from 'node:stream';
+import { AppError } from '../../utils/app-error';
+import { kafkaPublish } from '../../utils/kafka-util';
 import {
-    DEFAULT_BATCH_SIZE,
-    MAX_BATCH_SIZE,
-    MAX_CSV_BYTES,
-    MAX_CSV_ROWS,
-    type CsvSseRequest,
-} from "./csv-sse.dto";
+  DEFAULT_BATCH_SIZE,
+  MAX_BATCH_SIZE,
+  MAX_CSV_BYTES,
+  MAX_CSV_ROWS,
+  type CsvSseRecordError,
+  type CsvSseRequest,
+  type CsvSseStartResult,
+  type NormalizedCsvSseRequest,
+} from './csv-sse.dto';
 
 const PRIVATE_IPV4_RANGES = [
   /^127\./,
@@ -18,161 +25,210 @@ const PRIVATE_IPV4_RANGES = [
   /^172\.(?:1[6-9]|2\d|3[01])\./,
 ];
 
-export class CsvSseError extends Error {
-  constructor(public readonly code: string, cause?: unknown) {
-    super(code, { cause });
-    this.name = "CsvSseError";
+export default class CsvSseService {
+  static async StartService(input: CsvSseRequest): Promise<CsvSseStartResult> {
+    const { request, response } = await validateCSV(input);
+
+    void processCsv(request, response).catch((error: unknown) => {
+      log.error('CSV background processing failed', {
+        topic: request.topic,
+        error: errorMessage(error),
+      });
+    });
+
+    return { message: 'DOWNLOAD_STARTED', topic: request.topic };
   }
 }
 
-export function parseRequest(
-  urlValue: string | null,
-  batchSizeValue: string | null,
-  maxBatchesValue: string | null,
-  batchNoValue: string | null
-): CsvSseRequest {
-  if (!urlValue?.trim()) throw new CsvSseError('INVALID_CSV_URL');
-
-  let url: URL;
-  try {
-    url = new URL(urlValue);
-  } catch {
-    throw new CsvSseError('INVALID_CSV_URL');
-  }
-
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || isPrivateHost(url.hostname)) {
-    throw new CsvSseError('INVALID_CSV_URL');
-  }
-
-  const batchSize =
-    batchSizeValue === null || batchSizeValue.trim() === '' ? DEFAULT_BATCH_SIZE : Number(batchSizeValue);
-
-  if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > MAX_BATCH_SIZE) {
-    throw new CsvSseError('INVALID_BATCH_SIZE');
-  }
-
-  let maxBatches: number | undefined;
-  if (maxBatchesValue !== null && maxBatchesValue.trim() !== '') {
-    maxBatches = Number(maxBatchesValue);
-    if (!Number.isInteger(maxBatches) || maxBatches < 1) {
-      throw new CsvSseError('INVALID_MAX_BATCHES');
-    }
-  }
-
-  let batchNo: number | undefined;
-  if (batchNoValue !== null && batchNoValue.trim() !== '') {
-    batchNo = Number(batchNoValue);
-    if (!Number.isInteger(batchNo) || batchNo < 1) {
-      throw new CsvSseError('INVALID_BATCH_NO');
-    }
-  }
-
-  return { url: url.toString(), batchSize, maxBatches, batchNo };
-}
-
-export async function streamCsv(
-  input: CsvSseRequest,
-  onBatch: (
-    rows: Record<string, string>[],
-    processed: number,
-    batch: number,
-  ) => Promise<void>,
-  onRecordError: (record: unknown, rowNumber: number, message: string) => void,
-): Promise<{ processed: number; batches: number }> {
-  const response = await fetch(input.url, {
-    redirect: "error",
-    headers: { Accept: "text/csv,application/csv,text/plain;q=0.9,*/*;q=0.1" },
-  }).catch((error: unknown) => {
-    throw new CsvSseError("CSV_DOWNLOAD_FAILED", error);
-  });
-
-  if (!response.ok || !response.body) {
-    throw new CsvSseError("CSV_DOWNLOAD_FAILED");
-  }
-
-  const contentLength = Number(response.headers.get("content-length"));
-  if (Number.isFinite(contentLength) && contentLength > MAX_CSV_BYTES) {
-    throw new CsvSseError("CSV_FILE_TOO_LARGE");
-  }
-
-  let downloadedBytes = 0;
+async function processCsv(input: NormalizedCsvSseRequest, response: Response): Promise<void> {
   const byteLimitedBody = Readable.fromWeb(response.body as never);
-  byteLimitedBody.on("data", (chunk: Buffer) => {
-    downloadedBytes += chunk.length;
-    if (downloadedBytes > MAX_CSV_BYTES) {
-      byteLimitedBody.destroy(new CsvSseError("CSV_FILE_TOO_LARGE"));
-    }
-  });
-
   const parser = parse<Record<string, string>, Record<string, string>>({
-    headers: (headers) => headers.map((header) => (header?.trim() ? header : undefined)),
+    headers: normalizeHeaders,
     ignoreEmpty: true,
     strictColumnHandling: true,
     trim: true,
   });
-  parser.on("data-invalid", (record: unknown, rowNumber: number, reason?: unknown) => {
-    onRecordError(record, rowNumber, errorMessage(reason));
-  });
-  byteLimitedBody.pipe(parser);
+  const context = new CsvStreamContext(byteLimitedBody);
 
-  const batch: Record<string, string>[] = [];
-  let processed = 0;
-  let batches = 0;
+  byteLimitedBody.on('data', context.trackDownloadedBytes);
+  parser.on('data-invalid', context.collectRecordError);
+  byteLimitedBody.pipe(parser);
 
   try {
     for await (const row of parser) {
-      processed += 1;
-      if (processed > MAX_CSV_ROWS) {
-        throw new CsvSseError("CSV_ROW_LIMIT_EXCEEDED");
-      }
+      context.processed += 1;
+      if (context.processed > MAX_CSV_ROWS) throw new CsvProcessingError('CSV_ROW_LIMIT_EXCEEDED');
 
-      const currentBatchNo = batches + 1;
+      const currentBatchNo = context.batches + 1;
       const wantCurrentBatch = input.batchNo === undefined || input.batchNo === currentBatchNo;
-      if (wantCurrentBatch) batch.push(row);
+      if (wantCurrentBatch) context.batch.push(row);
+      if (context.processed % input.batchSize !== 0) continue;
 
-      if (processed % input.batchSize === 0) {
-        batches += 1;
-        if (wantCurrentBatch) {
-          await onBatch(batch.splice(0), processed, batches);
-        }
-        if (input.batchNo !== undefined && batches >= input.batchNo) {
-          byteLimitedBody.destroy();
-          parser.destroy();
-          return { processed, batches };
-        }
-        if (input.maxBatches !== undefined && batches >= input.maxBatches) {
-          byteLimitedBody.destroy();
-          parser.destroy();
-          return { processed, batches };
-        }
+      context.batches += 1;
+      if (wantCurrentBatch) {
+        await publishCsvBatch(
+          input.topic,
+          context.batch.splice(0),
+          context.processed,
+          context.batches,
+          context.recordErrors
+        );
+      }
+      if (
+        (input.batchNo !== undefined && context.batches >= input.batchNo) ||
+        (input.maxBatches !== undefined && context.batches >= input.maxBatches)
+      ) {
+        byteLimitedBody.destroy();
+        parser.destroy();
+        break;
       }
     }
 
-    if (batch.length > 0) {
-      batches += 1;
-      await onBatch(batch.splice(0), processed, batches);
+    if (!parser.destroyed && context.batch.length > 0) {
+      context.batches += 1;
+      await publishCsvBatch(
+        input.topic,
+        context.batch.splice(0),
+        context.processed,
+        context.batches,
+        context.recordErrors
+      );
     }
-    return { processed, batches };
+
+    await kafkaPublish(input.topic, null, {
+      event: ConstKeys.ACTION_COMPLETED,
+      processed: context.processed,
+      batches: context.batches,
+      data: [],
+      error: takeRecordErrors(context.recordErrors),
+    });
   } catch (error) {
     byteLimitedBody.destroy();
     parser.destroy();
-    if (error instanceof CsvSseError) throw error;
-    throw new CsvSseError("CSV_PARSE_FAILED", error);
+    const code = error instanceof CsvProcessingError ? error.code : 'CSV_PROCESSING_FAILED';
+    await kafkaPublish(input.topic, null, {
+      event: ConstKeys.OPERATION_FAILED,
+      processed: context.processed,
+      batches: context.batches,
+      data: [],
+      error: [{ code }],
+    });
+    throw error;
   }
+}
+
+class CsvStreamContext {
+  readonly batch: Record<string, string>[] = [];
+  readonly recordErrors: CsvSseRecordError[] = [];
+  downloadedBytes = 0;
+  processed = 0;
+  batches = 0;
+
+  constructor(private readonly stream: Readable) {}
+
+  trackDownloadedBytes = (chunk: Buffer): void => {
+    this.downloadedBytes += chunk.length;
+    if (this.downloadedBytes > MAX_CSV_BYTES) {
+      this.stream.destroy(new CsvProcessingError('CSV_FILE_TOO_LARGE'));
+    }
+  };
+
+  collectRecordError = (record: unknown, rowNumber: number, reason?: unknown): void => {
+    this.recordErrors.push({ record, rowNumber, message: errorMessage(reason) });
+  };
+}
+
+async function publishCsvBatch(
+  topic: string,
+  data: Record<string, string>[],
+  processed: number,
+  batches: number,
+  recordErrors: CsvSseRecordError[]
+): Promise<void> {
+  await kafkaPublish(topic, String(batches), {
+    event: ConstKeys.PROCESSING,
+    processed,
+    batches,
+    data,
+    error: takeRecordErrors(recordErrors),
+  });
+}
+
+function normalizeHeaders(headers: (string | null | undefined)[]): (string | undefined)[] {
+  return headers.map((header) => (header?.trim() ? header : undefined));
+}
+
+async function validateCSV(input: CsvSseRequest): Promise<{ request: NormalizedCsvSseRequest; response: Response }> {
+  if (!input.topic?.trim()) throw new AppError('CSV_TOPIC_REQUIRED');
+  if (!/^[a-zA-Z0-9._-]+$/.test(input.topic.trim())) throw new AppError('INVALID_CSV_TOPIC');
+
+  let url: URL;
+  try {
+    url = new URL(input.url);
+  } catch {
+    throw new AppError('INVALID_CSV_URL');
+  }
+
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || isPrivateHost(url.hostname)) {
+    throw new AppError('INVALID_CSV_URL');
+  }
+
+  const batchSize = input.batchSize ?? DEFAULT_BATCH_SIZE;
+  if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > MAX_BATCH_SIZE) {
+    throw new AppError('INVALID_BATCH_SIZE');
+  }
+  if (input.maxBatches !== undefined && (!Number.isInteger(input.maxBatches) || input.maxBatches < 1)) {
+    throw new AppError('INVALID_MAX_BATCHES');
+  }
+  if (input.batchNo !== undefined && (!Number.isInteger(input.batchNo) || input.batchNo < 1)) {
+    throw new AppError('INVALID_BATCH_NO');
+  }
+
+  const request = { ...input, url: url.toString(), topic: input.topic.trim(), batchSize };
+  const response = await fetch(request.url, {
+    redirect: 'error',
+    headers: { Accept: 'text/csv,application/csv,text/plain;q=0.9,*/*;q=0.1' },
+  }).catch(() => {
+    throw new AppError('CSV_DOWNLOAD_FAILED');
+  });
+
+  if (!response.ok || !response.body) throw new AppError('CSV_DOWNLOAD_FAILED');
+
+  const contentLength = Number(response.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > MAX_CSV_BYTES) {
+    await response.body.cancel();
+    throw new AppError('CSV_FILE_TOO_LARGE');
+  }
+
+  return { request, response };
+}
+
+class CsvProcessingError extends Error {
+  constructor(
+    public readonly code: string,
+    cause?: unknown
+  ) {
+    super(code, { cause });
+    this.name = 'CsvProcessingError';
+  }
+}
+
+function takeRecordErrors(errors: CsvSseRecordError[]): CsvSseRecordError[] {
+  return errors.splice(0);
 }
 
 function errorMessage(reason: unknown): string {
   if (reason instanceof Error) return reason.message;
-  if (typeof reason === "string" && reason.trim()) return reason;
-  return "Invalid CSV record";
+  if (typeof reason === 'string' && reason.trim()) return reason;
+  return 'Invalid CSV record';
 }
 
 function isPrivateHost(hostname: string): boolean {
-  const host = hostname.toLowerCase().replace(/^\[|\]$/g, "");
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
   return (
-    host === "localhost" ||
-    host === "::1" ||
-    host === "0:0:0:0:0:0:0:1" ||
+    host === 'localhost' ||
+    host === '::1' ||
+    host === '0:0:0:0:0:0:0:1' ||
     PRIVATE_IPV4_RANGES.some((range) => range.test(host))
   );
 }

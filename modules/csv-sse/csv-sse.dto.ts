@@ -5,9 +5,19 @@ export const MAX_CSV_ROWS = 100_000;
 
 export type CsvSseRequest = {
   url: string;
-  batchSize: number;
+  topic: string;
+  batchSize?: number;
   maxBatches?: number;
   batchNo?: number;
+};
+
+export type NormalizedCsvSseRequest = CsvSseRequest & {
+  batchSize: number;
+};
+
+export type CsvSseStartResult = {
+  message: 'DOWNLOAD_STARTED';
+  topic: string;
 };
 
 export type CsvSseRecordError = {
@@ -16,7 +26,8 @@ export type CsvSseRecordError = {
   message: string;
 };
 
-export type CsvSseEvent = {
+export type CsvSseTopicMessage = {
+  event: string;
   processed: number;
   batches: number;
   data: Record<string, string>[];

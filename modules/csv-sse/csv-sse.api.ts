@@ -22,7 +22,6 @@ export const CsvSse = api<CsvSseRequest, ResponseType>(
           status: error.code,
           error: {
             message: error.message,
-            stack: error.stack,
           },
         };
       }

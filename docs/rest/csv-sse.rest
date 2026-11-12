@@ -3,6 +3,7 @@
 @xTenantId = local
 
 ### Start a background CSV download and publish batches to Kafka
+# `uploadId` is required and is sent as `requestId` in every Kafka message.
 # `url` must be an externally reachable HTTP(S) CSV URL.
 # `topic` is required and receives batch messages.
 # `key` is optional; a random key is generated when omitted.
@@ -11,13 +12,13 @@
 # `batchNo` optionally emits only the specified batch.
 # The immediate response has status `DOWNLOAD_STARTED`. Kafka messages contain
 # `requestId` and PROCESSING batches followed by ACTION_COMPLETED, or
-# OPERATION_FAILED on error. The supplied request-id is reused in every message.
+# OPERATION_FAILED on error. `requestId` is the request body's `uploadId`.
 POST {{hosturl}}/csv-sse
 Content-Type: application/json
-request-id: product-import-request-123
 x-tenant-id: {{xTenantId}}
 
 {
+  "uploadId": "product-import-request-123",
   "url": "https://dtf-boltnbolt-nprd.s3.ca-central-1.amazonaws.com/local/raghu/PRODUCT_MAIN.csv",
   "topic": "test-csv-import-results",
   "key": "product-import-123",

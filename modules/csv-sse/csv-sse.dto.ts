@@ -4,6 +4,7 @@ export const MAX_CSV_BYTES = 10 * 1024 * 1024 * 1024;
 export const MAX_CSV_ROWS = 100_000;
 
 export type CsvSseRequest = {
+  uploadId: string;
   url: string;
   topic: string;
   key?: string;

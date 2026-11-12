@@ -28,10 +28,10 @@ const PRIVATE_IPV4_RANGES = [
 
 export default class CsvSseService {
   static async StartService(input: CsvSseRequest): Promise<CsvSseStartResult> {
-    const { request_id: requestId, tenant_id: tenant, branch_id: branch } = session_meta();
+    const { tenant_id: tenant, branch_id: branch } = session_meta();
     const { request, response } = await validateCSV(input);
 
-    void processCsv(request, response, { requestId, tenant, branch }).catch((error: unknown) => {
+    void processCsv(request, response, { requestId: request.uploadId, tenant, branch }).catch((error: unknown) => {
       log.error('CSV background processing failed', {
         topic: request.topic,
         tenant,
@@ -188,6 +188,7 @@ function normalizeHeaders(headers: (string | null | undefined)[]): (string | und
 }
 
 async function validateCSV(input: CsvSseRequest): Promise<{ request: NormalizedCsvSseRequest; response: Response }> {
+  if (!input.uploadId?.trim()) throw new AppError('CSV_UPLOAD_ID_REQUIRED');
   if (!input.topic?.trim()) throw new AppError('CSV_TOPIC_REQUIRED');
   if (!/^[a-zA-Z0-9._-]+$/.test(input.topic.trim())) throw new AppError('INVALID_CSV_TOPIC');
 

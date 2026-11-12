@@ -32,8 +32,8 @@ ENV CI=1
 WORKDIR /app
 
 COPY package.json ./
-# Keep the Encore runtime in sync with the latest CLI downloaded above.
-RUN bun install && bun add encore.dev@latest --exact
+# Install the package.json-pinned Encore runtime without using a lockfile.
+RUN bun install --no-save
 
 COPY . .
 RUN encore check

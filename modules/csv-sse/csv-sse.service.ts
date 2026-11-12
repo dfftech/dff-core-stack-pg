@@ -28,10 +28,10 @@ const PRIVATE_IPV4_RANGES = [
 
 export default class CsvSseService {
   static async StartService(input: CsvSseRequest): Promise<CsvSseStartResult> {
-    const { tenant_id: tenant, branch_id: branch } = session_meta();
+    const { request_id: requestId, tenant_id: tenant, branch_id: branch } = session_meta();
     const { request, response } = await validateCSV(input);
 
-    void processCsv(request, response, { tenant, branch }).catch((error: unknown) => {
+    void processCsv(request, response, { requestId, tenant, branch }).catch((error: unknown) => {
       log.error('CSV background processing failed', {
         topic: request.topic,
         tenant,
@@ -109,6 +109,7 @@ async function processCsv(
 
     await kafkaPublish(input.topic, input.key, {
       event: ConstKeys.ACTION_COMPLETED,
+      requestId: kafkaContext.requestId,
       tenant: kafkaContext.tenant,
       branch: kafkaContext.branch,
       limit: input.batchSize,
@@ -122,6 +123,7 @@ async function processCsv(
     const code = error instanceof CsvProcessingError ? error.code : 'CSV_PROCESSING_FAILED';
     await kafkaPublish(input.topic, input.key, {
       event: ConstKeys.OPERATION_FAILED,
+      requestId: kafkaContext.requestId,
       tenant: kafkaContext.tenant,
       branch: kafkaContext.branch,
       limit: input.batchSize,
@@ -155,6 +157,7 @@ class CsvStreamContext {
 }
 
 type CsvKafkaContext = {
+  requestId: string;
   tenant?: string;
   branch?: string;
 };
@@ -170,6 +173,7 @@ async function publishCsvBatch(
 ): Promise<void> {
   await kafkaPublish(topic, key, {
     event: ConstKeys.PROCESSING,
+    requestId: kafkaContext.requestId,
     tenant: kafkaContext.tenant,
     branch: kafkaContext.branch,
     limit,

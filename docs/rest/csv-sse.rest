@@ -10,9 +10,11 @@
 # `maxBatches` optionally stops after that many emitted batches.
 # `batchNo` optionally emits only the specified batch.
 # The immediate response has status `DOWNLOAD_STARTED`. Kafka messages contain
-# PROCESSING batches followed by ACTION_COMPLETED, or OPERATION_FAILED on error.
+# `requestId` and PROCESSING batches followed by ACTION_COMPLETED, or
+# OPERATION_FAILED on error. The supplied request-id is reused in every message.
 POST {{hosturl}}/csv-sse
 Content-Type: application/json
+request-id: product-import-request-123
 x-tenant-id: {{xTenantId}}
 
 {

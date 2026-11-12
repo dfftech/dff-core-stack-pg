@@ -30,6 +30,7 @@ export type CsvSseRecordError = {
 
 export type CsvSseTopicMessage = {
   event: string;
+  requestId: string;
   tenant?: string;
   branch?: string;
   /** Requested CSV rows per emitted batch. */

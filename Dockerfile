@@ -20,7 +20,7 @@ RUN mkdir -p /out/.encore \
     && chmod +x /out/.encore/bin/encore \
     && /out/.encore/bin/encore version update
 
-FROM node:22-slim
+FROM node:lts-slim
 ENTRYPOINT []
 
 COPY --from=encore-fetch /out/.encore /root/.encore

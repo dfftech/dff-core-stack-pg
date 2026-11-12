@@ -6,20 +6,20 @@
   "license": "MPL-2.0",
   "type": "module",
   "devDependencies": {
-    "@types/node": "^20.5.7",
-    "@types/nodemailer": "^8.0.2",
-    "@types/pg": "^8.23.1",
-    "typescript": "^5.2.2"
+    "@types/node": "20.12.7",
+    "@types/nodemailer": "8.0.2",
+    "@types/pg": "8.23.1",
+    "typescript": "5.4.5"
   },
   "dependencies": {
-    "dff-util": "^1.4.5",
-    "drizzle-orm": "^0.45.2",
-    "encore.dev": "1.58.4",
-    "fast-csv": "^5.0.8",
-    "kafkajs": "^2.2.4",
-    "marked": "^18.1.1",
-    "nodemailer": "^10.0.10",
-    "pg": "^8.23.0"
+    "dff-util": "1.4.5",
+    "drizzle-orm": "0.45.4",
+    "encore.dev": "1.58.8",
+    "fast-csv": "5.0.8",
+    "kafkajs": "2.2.4",
+    "marked": "18.2.0",
+    "nodemailer": "10.5.0",
+    "pg": "8.23.1"
   },
   "scripts": {
     "start": "encore run"

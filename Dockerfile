@@ -1,5 +1,6 @@
 FROM oven/bun:1-slim AS encore-fetch
-ARG ENCORE_CLI_VERSION=latest
+# Keep the CLI compatible with the installed encore.dev package.
+ARG ENCORE_CLI_VERSION=1.58.8
 ARG ENCORE_CLI_CACHE=0
 ENTRYPOINT []
 ENV DEBIAN_FRONTEND=noninteractive

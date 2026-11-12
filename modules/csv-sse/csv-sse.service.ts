@@ -1,7 +1,6 @@
 import { ConstKeys } from 'dff-util';
 import log from 'encore.dev/log';
 import { parse } from 'fast-csv';
-import { randomUUID } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { AppError } from '../../utils/app-error';
 import { session_meta } from '../../utils/app-util';
@@ -79,7 +78,6 @@ async function processCsv(
           input.topic,
           context.batch.splice(0),
           context.processed,
-          context.batches,
           context.recordErrors,
           kafkaContext,
           input.batchSize,
@@ -102,7 +100,6 @@ async function processCsv(
         input.topic,
         context.batch.splice(0),
         context.processed,
-        context.batches,
         context.recordErrors,
         kafkaContext,
         input.batchSize,
@@ -166,11 +163,10 @@ async function publishCsvBatch(
   topic: string,
   data: Record<string, string>[],
   processed: number,
-  _batches: number,
   recordErrors: CsvSseRecordError[],
   kafkaContext: CsvKafkaContext,
   limit: number,
-  key: string
+  key: string | null
 ): Promise<void> {
   await kafkaPublish(topic, key, {
     event: ConstKeys.PROCESSING,
@@ -213,7 +209,7 @@ async function validateCSV(input: CsvSseRequest): Promise<{ request: NormalizedC
     throw new AppError('INVALID_BATCH_NO');
   }
 
-  const key = input.key?.trim() || randomUUID();
+  const key = input.key?.trim() || null;
   const request = { ...input, url: url.toString(), topic: input.topic.trim(), key, batchSize };
   const response = await fetch(request.url, {
     redirect: 'error',

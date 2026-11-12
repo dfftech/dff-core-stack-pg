@@ -12,8 +12,8 @@ export type CsvSseRequest = {
   batchNo?: number;
 };
 
-export type NormalizedCsvSseRequest = CsvSseRequest & {
-  key: string;
+export type NormalizedCsvSseRequest = Omit<CsvSseRequest, 'key' | 'batchSize'> & {
+  key: string | null;
   batchSize: number;
 };
 

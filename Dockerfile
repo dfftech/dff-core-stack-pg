@@ -1,6 +1,6 @@
 FROM oven/bun:1-slim AS encore-fetch
 # Keep the CLI compatible with the installed encore.dev package.
-ARG ENCORE_CLI_VERSION=1.58.8
+ARG ENCORE_CLI_VERSION=latest
 ARG ENCORE_CLI_CACHE=0
 ENTRYPOINT []
 ENV DEBIAN_FRONTEND=noninteractive
@@ -31,7 +31,8 @@ ENV CI=1
 WORKDIR /app
 
 COPY package.json ./
-RUN bun install
+# Keep the Encore runtime in sync with the latest CLI downloaded above.
+RUN bun install && bun add encore.dev@latest --exact
 
 COPY . .
 RUN encore check

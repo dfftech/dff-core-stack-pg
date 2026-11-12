@@ -17,7 +17,8 @@ RUN mkdir -p /out/.encore \
        fi \
     && echo "Installing Encore CLI ${ENCORE_CLI_VERSION}" \
     && curl -fsSL "https://d2f391esomvqpi.cloudfront.net/encore-${ENCORE_CLI_VERSION}-linux_amd64.tar.gz" | tar -xz -C /out/.encore \
-    && chmod +x /out/.encore/bin/encore
+    && chmod +x /out/.encore/bin/encore \
+    && /out/.encore/bin/encore version update
 
 FROM oven/bun:1-slim
 ENTRYPOINT []

@@ -11,6 +11,10 @@ export type VerifyOtpDto = {
   otp: string;
 };
 
+export type CheckOtpDto = {
+  id: string;
+};
+
 /** View shape returned by `toViewMapper` for an OTP verification entity. */
 export type OtpVerificationView = {
   id: string;

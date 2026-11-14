@@ -1,6 +1,6 @@
 import { api } from "encore.dev/api";
 import type { ResponseType, SearchType } from "dff-util";
-import type { OtpVerificationDto } from "./otp-verification.dto";
+import type { CheckOtpDto, OtpVerificationDto, VerifyOtpDto } from "./otp-verification.dto";
 import OtpVerificationService from "./otp-verification.service";
 import { AppError } from "../../utils/app-error";
 import { logger } from "../../utils/app-util";
@@ -60,6 +60,46 @@ export const EntityByIdOtpVerification = api<{ id: string }, ResponseType>(
         return { data: null, error: error.code };
       }
       logger().error(`Failed to entity by id otp verification: ${error}`);
+      throw error;
+    }
+  }
+);
+
+export const VerifyOtp = api<VerifyOtpDto, ResponseType>(
+  {
+    expose: true,
+    method: "POST",
+    path: "/otp-verification-verify",
+  },
+  async (input: VerifyOtpDto) => {
+    try {
+      const data = await OtpVerificationService.VerifyOtpService(input);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to verify otp: ${error}`);
+      throw error;
+    }
+  }
+);
+
+export const CheckOtp = api<CheckOtpDto, ResponseType>(
+  {
+    expose: true,
+    method: "GET",
+    path: "/otp-verify-check",
+  },
+  async (input: CheckOtpDto) => {
+    try {
+      const data = await OtpVerificationService.CheckOtpService(input);
+      return { data };
+    } catch (error) {
+      if (error instanceof AppError) {
+        return { data: null, error: error.code };
+      }
+      logger().error(`Failed to check otp: ${error}`);
       throw error;
     }
   }

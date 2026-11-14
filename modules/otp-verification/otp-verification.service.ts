@@ -124,6 +124,21 @@ export default class OtpVerificationService {
     return { verified: true, message: "OTP verified successfully" };
   }
 
+  static async CheckOtpService(dto: { id: string }) {
+    const record = await this.FindEntityById(dto.id);
+    if (!record) {
+      return { exists: false, expired: false, verified: false, message: "OTP not found" };
+    }
+
+    const expired = this.isExpired(record.created_at);
+    return {
+      exists: true,
+      expired,
+      verified: record.is_verified,
+      message: expired ? "OTP expired" : "OTP is valid",
+    };
+  }
+
   static buildSearchWhere(input: SearchType): SQL | undefined {
     const parts: SQL[] = [];
     if (input.searchTerm) parts.push(ilike(otpVerificationEntity.uid, `%${input.searchTerm}%`));

@@ -193,8 +193,8 @@ export default class AuthService {
   }
 
   static async ResetPasswordService(dto: ResetPasswordDto) {
-    const otpRecord = await OtpVerificationService.GetOtpService(dto.otpId);
-    if (!otpRecord || !otpRecord.isVerified) throw new Error(AuthProps.REVERIFY_OTP);
+    const otpCheck = await OtpVerificationService.CheckOtpService({ id: dto.otpId });
+    if (!otpCheck.exists || !otpCheck.verified || otpCheck.expired) throw new Error(AuthProps.REVERIFY_OTP);
 
     const profile = await this.FindProfileByUserid(dto.userid);
     if (!profile) throw new Error(AuthProps.USER_NOT_FOUND);

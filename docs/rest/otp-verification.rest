@@ -31,3 +31,20 @@ Content-Type: application/json
 GET {{hosturl}}/otp-verification-entity/OTP_ID
 Authorization: Bearer {{authToken}}
 x-tenant-id: {{xTenantId}}
+
+### 4. Verify OTP
+POST {{hosturl}}/otp-verification-verify
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}
+Content-Type: application/json
+
+{
+  "id": "OTP_ID",
+  "uid": "admin@admin.com",
+  "otp": "123456"
+}
+
+### 5. Check OTP
+GET {{hosturl}}/otp-verify-check?id=OTP_ID
+Authorization: Bearer {{authToken}}
+x-tenant-id: {{xTenantId}}

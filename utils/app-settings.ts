@@ -32,6 +32,8 @@ export function settingNumber(
   key: string,
   fallback: number
 ): number {
-  const n = Number(data[key]);
+  const text = settingText(data, key);
+  if (!text) return fallback;
+  const n = Number(text);
   return Number.isFinite(n) ? n : fallback;
 }

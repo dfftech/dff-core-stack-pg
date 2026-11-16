@@ -20,13 +20,13 @@ export class MailHelper {
     const data = await AppSettingService.DataByIdService(SETTING_SMTP);
     const user = settingText(data, 'username') || env('MAIL_USER') || '';
     const pass = settingText(data, 'password') || env('MAIL_PASS') || '';
-    const host = settingText(data, 'host');
+    const host = settingText(data, 'host') || env('MAIL_HOST') || '';
     const service = settingText(data, 'service') || env('MAIL_SERVICE') || '';
-    const fromEmail = settingText(data, 'from_email') || user;
-    const fromName = settingText(data, 'from_name');
-    const encryption = settingText(data, 'encryption').toLowerCase();
-    const port = settingNumber(data, 'port', 587);
-    const secure = data.secure === true || encryption === 'ssl' || port === 465;
+    const fromEmail = settingText(data, 'from_email') || env('MAIL_FROM_EMAIL') || user;
+    const fromName = settingText(data, 'from_name') || env('MAIL_FROM_NAME') || 'No Reply';
+    const encryption = (settingText(data, 'encryption') || env('MAIL_ENCRYPTION') || '').toLowerCase();
+    const port = settingNumber(data, 'port', Number(env('MAIL_PORT')) || 587);
+    const secure = data.secure === true || env('MAIL_SECURE') === 'true' || encryption === 'ssl' || port === 465;
     const from = fromName ? `"${fromName}" <${fromEmail}>` : fromEmail;
     return { host, port, user, pass, service, secure, from };
   }

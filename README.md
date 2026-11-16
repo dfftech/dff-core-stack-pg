@@ -19,10 +19,16 @@ export CORE_LOG_MASK_KEYS='email,mobile,tel_code,telCode,phone,password,token,au
 echo $CORE_DB_URL
 # SMTP / S3: fill app_settings rows (do not put secrets in git)
 # integration_smtp, integration_s3_public, integration_s3_private
-# Optional fallback if SMTP username/password are empty:
-# export CORE_MAIL_SERVICE=outlook
-# export CORE_MAIL_USER='noreply@example.com'
-# export CORE_MAIL_PASS='...'
+# Any field left empty there falls back to env("<KEY>") = ${BASE_NAME}_<KEY> (see "Env fallback" below), e.g.:
+# export ${BASE_NAME}_MAIL_HOST='smtp.office365.com'
+# export ${BASE_NAME}_MAIL_PORT=587
+# export ${BASE_NAME}_MAIL_USER='noreply@example.com'
+# export ${BASE_NAME}_MAIL_PASS='...'
+# export ${BASE_NAME}_S3_ACCESS_KEY='...'
+# export ${BASE_NAME}_S3_SECRET_KEY='...'
+# export ${BASE_NAME}_S3_REGION='ca-central-1'
+# export ${BASE_NAME}_S3_PUBLIC_BUCKET='my-public-bucket'
+# export ${BASE_NAME}_S3_PRIVATE_BUCKET='my-private-bucket'
 ```
 
 ```sh
@@ -76,6 +82,32 @@ Nodemailer uses: `host`, `port`, `username`, `password`, `secure`, `service` (on
 `enabled`, `bucket`, `region`, `access_key`, `secret_key`, `endpoint`, `base_url`, `folder`, `expires` (seconds), `acl` (`public-read` vs `private`).
 
 If `bucket` + `access_key` + `secret_key` are set, URLs are AWS SigV4. Otherwise Encore buckets `sss-files` (public) and `sss-files-private` (private). Empty `endpoint` / `base_url` is fine: public download falls back to Encore `publicUrl` or virtual-hosted S3. For AWS Canada: `region` `ca-central-1`, `endpoint` `https://s3.ca-central-1.amazonaws.com`, `base_url` `https://{bucket}.s3.ca-central-1.amazonaws.com`.
+
+### Env fallback (SMTP / S3)
+
+Each field that is missing or empty in the app_settings row is read from env; a value in app_settings always wins. Names below are the keys passed to `env()`, which adds the `BASE_NAME` prefix (`env('MAIL_USER')` reads `${BASE_NAME}_MAIL_USER`).
+
+| Setting key | SMTP env | S3 env (public / private) |
+|---|---|---|
+| `host` | `MAIL_HOST` | |
+| `port` | `MAIL_PORT` | |
+| `username` | `MAIL_USER` | |
+| `password` | `MAIL_PASS` | |
+| `service` | `MAIL_SERVICE` | |
+| `secure` | `MAIL_SECURE` (`true`) | |
+| `encryption` | `MAIL_ENCRYPTION` | |
+| `from_email` | `MAIL_FROM_EMAIL` | |
+| `from_name` | `MAIL_FROM_NAME` | |
+| `bucket` | | `S3_PUBLIC_BUCKET` / `S3_PRIVATE_BUCKET` |
+| `folder` | | `S3_FOLDER` |
+| `base_url` | | `S3_BASE_URL` |
+| `access_key` | | `S3_ACCESS_KEY` |
+| `secret_key` | | `S3_SECRET_KEY` |
+| `region` | | `S3_REGION` |
+| `endpoint` | | `S3_ENDPOINT` |
+| `expires` | | `S3_EXPIRES` |
+
+Only `bucket` is per access level (`S3_PUBLIC_BUCKET` / `S3_PRIVATE_BUCKET`), so a private upload never lands in the public bucket by accident; every other S3 key is shared. `base_url` only affects public download links. A `folder` of exactly `<tenant>` (in app_settings or `S3_FOLDER`) is replaced by the request's `x-tenant-id`. `enabled: false` in the app_settings row still disables S3.
 
 ---
 

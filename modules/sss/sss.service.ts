@@ -2,7 +2,7 @@ import { toKebabCase } from 'dff-util';
 import { randomUUID } from 'node:crypto';
 import { AppError } from '../../utils/app-error';
 import { SETTING_S3_PRIVATE, SETTING_S3_PUBLIC, settingNumber, settingText } from '../../utils/app-settings';
-import { branch_id, logger, tenant_id } from '../../utils/app-util';
+import { branch_id, env, logger, tenant_id } from '../../utils/app-util';
 import AppSettingService from '../app-setting/app-setting.service';
 import { sssPrivateFiles, sssPublicFiles } from './sss.bucket';
 import type { SssUrlRequest } from './sss.dto';
@@ -32,17 +32,23 @@ export default class SssService {
     return DEFAULT_PROVIDER;
   }
 
-  static AwsConfig(s3: Record<string, unknown>): S3SignConfig | null {
-    const bucket = settingText(s3, 'bucket');
-    const accessKey = settingText(s3, 'access_key');
-    const secretKey = settingText(s3, 'secret_key');
+  /** Env prefix per access level: S3_PUBLIC_* or S3_PRIVATE_*. */
+  static EnvScope(isPrivate: boolean): string {
+    return isPrivate ? 'S3_PRIVATE' : 'S3_PUBLIC';
+  }
+
+  static AwsConfig(s3: Record<string, unknown>, isPrivate: boolean): S3SignConfig | null {
+    const scope = this.EnvScope(isPrivate);
+    const bucket = settingText(s3, 'bucket') || env(`${scope}_BUCKET`) || '';
+    const accessKey = settingText(s3, 'access_key') || env('S3_ACCESS_KEY') || '';
+    const secretKey = settingText(s3, 'secret_key') || env('S3_SECRET_KEY') || '';
     if (!bucket || !accessKey || !secretKey) return null;
     return {
       bucket,
-      region: settingText(s3, 'region') || 'us-east-1',
+      region: settingText(s3, 'region') || env('S3_REGION') || 'us-east-1',
       accessKey,
       secretKey,
-      endpoint: settingText(s3, 'endpoint') || undefined,
+      endpoint: settingText(s3, 'endpoint') || env('S3_ENDPOINT') || undefined,
     };
   }
 
@@ -63,6 +69,12 @@ export default class SssService {
     return { upload, download, key, access: isPrivate ? 'private' : 'public' };
   }
 
+  /** Root folder from setting or env; the value `<tenant>` becomes the request's tenant id. */
+  static RootFolder(s3: Record<string, unknown>): string {
+    const folder = settingText(s3, 'folder') || env('S3_FOLDER') || '';
+    return folder === '<tenant>' ? String(tenant_id() || '').trim() : folder;
+  }
+
   static async UrlService(input: SssUrlRequest) {
     const log = logger();
     try {
@@ -76,14 +88,14 @@ export default class SssService {
       const isPrivate = input.private === true;
       const s3 = await AppSettingService.DataByIdService(this.SettingId(isPrivate));
       if (s3.enabled === false) throw new AppError('S3_NOT_CONFIGURED');
-      const folder = [settingText(s3, 'folder'), providerFolder, typeFolder]
+      const folder = [this.RootFolder(s3), providerFolder, typeFolder]
         .map((p) => p.replace(/^\/+|\/+$/g, ''))
         .filter(Boolean)
         .join('/');
-      const baseUrl = settingText(s3, 'base_url').replace(/\/+$/, '');
-      const ttl = settingNumber(s3, 'expires', 300);
+      const baseUrl = (settingText(s3, 'base_url') || env('S3_BASE_URL') || '').replace(/\/+$/, '');
+      const ttl = settingNumber(s3, 'expires', Number(env('S3_EXPIRES')) || 300);
       const key = this.UniqueKey(fileName, folder);
-      const aws = this.AwsConfig(s3);
+      const aws = this.AwsConfig(s3, isPrivate);
       const data = aws
         ? this.AwsUrls(key, isPrivate, aws, baseUrl, ttl)
         : await this.EncoreUrls(key, isPrivate, baseUrl, ttl);

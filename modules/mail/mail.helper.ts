@@ -1,9 +1,10 @@
 import { marked } from 'marked';
 import { createTransport, type Transporter } from 'nodemailer';
 import { SETTING_SMTP, settingNumber, settingText } from '../../utils/app-settings';
-import { env } from '../../utils/app-util';
+import { env, logger } from '../../utils/app-util';
 import AppSettingService from '../app-setting/app-setting.service';
 import type { MailAttachmentDto } from './mail.dto';
+import { MailGraphService } from './mail.graph';
 
 type SmtpConfig = {
   host: string;
@@ -16,8 +17,7 @@ type SmtpConfig = {
 };
 
 export class MailHelper {
-  static async LoadSmtp(): Promise<SmtpConfig> {
-    const data = await AppSettingService.DataByIdService(SETTING_SMTP);
+  static LoadSmtp(data: Record<string, unknown>): SmtpConfig {
     const user = settingText(data, 'username') || env('MAIL_USER') || '';
     const pass = settingText(data, 'password') || env('MAIL_PASS') || '';
     const host = settingText(data, 'host') || env('MAIL_HOST') || '';
@@ -31,8 +31,8 @@ export class MailHelper {
     return { host, port, user, pass, service, secure, from };
   }
 
-  static async CreateTransport(): Promise<{ transporter: Transporter; from: string }> {
-    const smtp = await this.LoadSmtp();
+  static CreateTransport(data: Record<string, unknown>): { transporter: Transporter; from: string } {
+    const smtp = this.LoadSmtp(data);
     if (!smtp.user || !smtp.pass || !smtp.from) {
       throw new Error('MAIL_NOT_CONFIGURED');
     }
@@ -51,12 +51,25 @@ export class MailHelper {
   }
 
   static async SendMail(to: string, subject: string, markdown: string, attachments: MailAttachmentDto[] = []) {
-    const { transporter, from } = await this.CreateTransport();
+    const log = logger();
+    // Load settings once and pass to all methods
+    const settingData = await AppSettingService.DataByIdService(SETTING_SMTP);
+    // const service = settingText(settingData, 'service') || env('MAIL_SERVICE') || '';
+    const service = 'graph';
+    const html = await marked.parse(markdown);
+    if (service.toLowerCase() === 'graph') {
+      const sender = settingText(settingData, 'graph_sender') || env('MAIL_GRAPH_SENDER') || '';
+      log.info(`Mail: sending via Graph from ${sender} to ${to}`);
+      return MailGraphService.sendMail(to, subject, html, true, settingData);
+    }
+
+    const { transporter, from } = this.CreateTransport(settingData);
+    log.info(`Mail: sending via SMTP from ${from} to ${to}`);
     const info = await transporter.sendMail({
       from,
       to,
       subject,
-      html: await marked.parse(markdown),
+      html: html,
       attachments: attachments.map((item) => ({
         ...(item.path.startsWith('http://') || item.path.startsWith('https://')
           ? { href: item.path }
